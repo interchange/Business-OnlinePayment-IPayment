@@ -1,0 +1,124 @@
+=head2 transaction types
+
+=item preauth : reserve the amount
+=item auth : actual payment
+=item base_check : plausibility check
+=item check_save: do a preauth and then cancel (some banks don't support this)
+
+=head2  actions
+
+=item capture
+
+Withdrawing pre-authorized transactions
+
+only ID needed.
+
+This can fail if too much time passed (e.g. CC locked). Say within 6 days.
+
+=item reverse
+
+cancel preauth (full amount)
+
+=item refund_cap 
+
+cancel the payment after its execution (even several) On the credit
+card statement of the buyer both the withdrawal, and the material is
+recorded in writing. 
+
+* Ask: Wtf is ELV. For ELV refund_cap could be limited or impossible
+
+
+=head2 re-actions
+
+New payments/auth using the old transaction ID. Data stored for 3 month.
+
+=item re_preauth
+
+=item re_auth 
+
+=item grefund_cap !!! unclear. Why
+
+To perform a credit for a credit card with no transaction has yet been carried out with ipayment.
+
+Grefund_cap transaction type should not be used in an online store environment but most of backend systems.
+
+Therefore, you must allow the use of this type of transaction first free cups of ipayment support. Please contact in this case, a rationale for the activation request
+
+=head2 phone auth
+
+It can happen that a deduction or credit for payments by credit card completed
+rejects is. You can recognize the error code if alternatively a telephone authorization
+possible. This happens, for example, if it is in the transaction is a very high posts. Call in this case to the approval of your payment service provider
+and perform an unauthorized payment by phone.
+
+=item voice_auth
+
+You have obtained the phone approval and want to charge the amount
+now. After approval by the authorization service, you can type the
+transaction voice_auth use. In addition to the credit card
+information you need as an additional parameter to Authorization
+number, which you have been called on the phone. The amount will be
+immedi- booked.
+
+=item voice_grefund_cap
+
+After unlocking. Unclear the difference between voice_auth and
+voice_grefund_cap
+
+=head2 Silent CGI mode
+
+https://ipayment.de/merchant/99999/example/2.0/
+https://ipayment.de/merchant/99999/processor/2.0/
+https://ipayment.de/merchant/99999/example_addrcheck.php
+
+For successful transactions, the parameters specified in the call 
+trxuser_id trx_amount, trx_currency, trx_user_comment and address data of
+your customers repeated in the result parameters.
+
+Silent mode allows you ipayment invisibly integrate into your shop.
+While the ordering process, the payment information is transmitted
+directly to ipayment and there processed processed without any of
+ipayment is a visible issue for your customers. You can a form for
+recording the data to create maps, the layout perfect for your online
+Shops fits. The feedback (result or error) will also be on a separate
+Page displayed in your shop. This leaves your customer during the
+order process never noticeably your shop. ipayment is on silent mode
+relatively easy to integrate into your web application. Ver- apply to
+the parameters redirect_url (success message) or silent_error_url
+(Error message). Both URLs have CGI scripts to be in your store,
+which-due to the overweight surrounded parameters can perform
+appropriate actions. Such actions are to His example by storing the
+order or the issue of the error message. Prevent manipulation of
+payment data In addition to the payment data in silent mode when
+calling the ipayment Basic data (for example your ipayment account
+data) and other fixed-Pa parameters (for example, amount, and currency
+settings) transferred. These values can be viewed by the purchaser and
+also manipulated. No problem, it is, if after a successful payment,
+the correctness of these values ​​is checked. If you want to prevent
+these parameters from the buyer be viewed or manipulated may be, you
+can transfer the information to advance ipayment and a session at
+ipayment Pre-Generate. After that, transfer the call, only the ID of
+the session. Exactly how it works, refer to the chapter Pre-Generate
+session IDs on page 42 read. Ipayment the server uses a 256-bit SSL
+certificate. Thereby, the security of data Payment information to
+ensure the processing on the server ipayment. So safety can be ensured
+even at the entry and transmission of data, SSL on your pages must
+also be present. If you do not use SSL, it can happen that some
+browsers when it returns from the SSL-secured ipayment server in your
+Web warnings. In addition, we strongly recommend that you use a
+special "Hidden Trigger Script" to obtain feedback from successful
+transactions secure. For more information mation on this process, see
+Secured feedback successful transaction tions on page 41 When silent
+mode you can use 3-D Secure for "Verified by Visa", "MasterCard
+SecureCode" and use "Maestro SecureCode" without further changes are
+needed. 3-D Secure is in silent mode automatically available. A
+separate PCI certification is also not necessary, since the payment
+data solely on the server does ipayment be working. Example of
+application In our FAQ you will find an example script for integrating
+ipayment in "Si lent mode ": http://faq.ipayment.de> questions
+regarding the individual connection of ipayment> How can I ipayment in
+"silent mode" use?
+
+=head2 See also
+
+http://git.linuxia.de/?p=ogone.git;a=blob;f=lib/Business/OnlinePayment/Ogone.pm;h=906d924e33d554291fd8f51fdc36d5ff9491245c;hb=HEAD
