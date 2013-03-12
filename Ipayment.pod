@@ -119,6 +119,249 @@ ipayment in "Si lent mode ": http://faq.ipayment.de> questions
 regarding the individual connection of ipayment> How can I ipayment in
 "silent mode" use?
 
+=head3 Basic parameters
+
+Parameter to identify the ipayment accounts
+The following parameters are used to identify the ipayment accounts necessary.
+
+=item Account ID (included in the url)
+
+CGI Name: - (included in the URL of the script)
+Data type: Integer
+
+ID used ipayment accounts. You can find this value in your ipayment
+Configuration menu under General Data.
+
+
+=item Application ID
+CGI Name: C<trxuser_id>
+Data type: Integer
+
+The application ID, you can in your ipayment configuration menu read
+using  Anwendung > Details 
+
+=item Application Password
+CGI Name: C<trxpassword>
+Data type: Long
+
+For each application, there is an application password which
+automatically ipayment System is presented. The password consists of
+numbers. You will find the application password in your ipayment
+Anwendungen > Details
+
+B<This is not the account password!>
+
+
+=item Admin password action
+CGI name: C<adminactionpassword>
+Data type: String
+
+The admin password action is only for administrative transactions,
+such as cancellations, Chargebacks or debits needed.
+
+So it probably shouldn't be exposed. A bit unclear.
+
+Log into the ipayment configuration menu is not possible with this password.
+
+=head3 Parameters for the amount and currency
+
+
+With these parameters, you can specify the amount and the currency of the transaction.
+
+=item Currency Transaction
+CGI Name: C<trx_currency>
+Data type: string, exactly 3 letters
+
+Currency in which the payment is processed. There are all known
+three-letter ISO Currency codes allowed. A list of known currency
+codes, see L<https://ipayment.de/> under B<Technik>. So says the doc,
+but I couldn't find the link.
+
+
+Note that the processing of payments in the on-
+given currency must be agreed with your payment provider.
+
+=item Amount of the transaction
+CGI Name: C<trx_amount>
+Data type: Integer, only positive value, a maximum of 10,000,000
+
+Amount to be debited. Enter the value in the B<smallest currency
+unit>, for Example cents. B<Decimal points> or other characters except
+numbers are B<not allowed>.
+
+For example, the amount of EUR 10.00 is given as 1000 cents.
+
+So we have to do something like this C<int($cart * 100)>;
+
+=item Amount of the transaction as individual components
+CGI Name: C<trx_amount_base>, C<trx_amount_decimal>
+Data type: Integer, only positive values
+
+This is maybe a better choice then the above C<trx_amount>
+
+C<trx_amount_base> is the amount before the comma (Euro) and
+C<trx_amount_decimal> for the amount after the decimal (cents).
+
+If C<trx_amount> is set, the parameters here are ignored.
+
+=head3 Parameter to specify the desired payment
+
+=item Transaction type
+
+CGI Name: C<trx_typ>
+Data type: string, values ​​as described
+Ipayment are depending on the mode of payment providers and payment medium following
+Transaction types are allowed (for Silent Mode):
+
+     preauth
+     auth
+     base_check
+     check_save
+     voice_auth
+     voice_grefund_cap
+     re_preauth
+     re_auth
+     capture
+     reverse
+     refund_cap
+     grefund_cap
+
+Default to C<auth>.
+
+=item Payment type 
+
+CGI Name: C<trx_paymenttyp>
+Valuses: C<cc> (Credit card), C<elv> (ELV), C<pp> (Prepaid payment)
+
+Some euristic on the ipayment side is performed if not provided, defaulting to 
+Defaults to C<cc>.
+
+
+=item Original transaction number for actions to transactions
+
+CGI Name: C<orig_trx_number>
+Data type: String
+
+
+For some types of transactions you need to perform an action on a
+single parameter of the transaction number of the original
+transaction. This number is transmitted with C<orig_trx_number>.
+
+=head3 Parameters for name and address of the cardholder
+
+With these parameters, you can transfer personal information of the cardholder.
+
+=item Name of Owner
+CGI Name: C<addr_name>
+Data type: string, B<maximum 100 characters>
+
+Name of the buyer. This parameter is B<required> for all payments.
+
+=item E-mail of the buyer
+CGI Name: C<addr_email>
+Data type: string, B<maximum 80 characters>
+
+E-mail address of the buyer. If this field is filled in, the e-mail address is also (?) checked for plausibility.
+
+=item Address of the purchaser
+
+CGI Name: C<addr_street> (255 chars), C<addr_city> (max 50 chars),
+C<addr_zip> (max 20 chars), C<addr_country> (ISO country code, 3 chars)
+
+Data type: string length as described
+Address of the purchaser. In these parameters, you can see the street (maximum 255 characters)
+the city (up to 50 characters), the zip code (up to 20 characters) and ISO country code
+Pass (3 characters) of the cardholder. The ISO country code based on ISO-
+Country code list, which you may view at https://ipayment.de/> technique. 
+
+If street, postcode or town were specified, all the other options should (?)
+be filled.
+
+=item More contact details of the buyer
+
+CGI Name: C<addr_street2> (max 255 chars), C<addr_state> (2 chars)
+
+The state is only necessary if the card holder living in the U.S. or
+Canada.
+
+=item Telephone and fax of the buyer
+
+CGI Name: C<addr_telefon>, C<addr_telefax> (both max 30 chars)
+
+This information will only stored, but not audited by the address
+check.
+
+# here some parameters has been skipped for now
+
+=head3 Redirections
+
+=item Redirect url
+
+CGI-Name: C<redirect_url>
+
+I<In silent mode, the parameters are always passed by GET to the
+script.> (no need to C<redirect_action>)
+
+=item If parameters for success redirect be returned?
+
+CGI Name: C<noparams_on_redirect_url>
+Data Type: Boolean (C<1> if true)
+
+With this parameter, you can determine whether after successful
+transaction the iPayment parameters to be passed. A value of 1 (true),
+means that the parameter are not passed. I<In this case you should use
+a hidden trigger scripts> to to transmit the information that the
+payment was successful. This Function prevents browser problems: some
+browsers (such as B<Internet Explorer 5>) have restrictions on the
+Length of a URL, which can lead to problems when redirect.
+
+B<Are we still caring about IE5>?
+
+
+=item Redirect URL for errors in CGI silent mode
+
+CGI Name: C<silent_error_url>
+Data type: String
+
+This URL is more in case of failure of ipayment system with the error information and parameters B<using the GET method>. This URL must point to a CGI script that can handle the paramaters.
+
+=item If parameters are to be given the error redirect back?
+
+CGI Name: C<noparams_on_error_url>
+Data Type: Boolean
+With this parameter, you can set whether to a declined transaction iPay-
+ment parameters to be passed to your website or not. A value of 1 (true) are
+to not pass parameters.
+
+=item Error redirect URL for prepaid payments
+
+CGI Name: C<backlink>
+Data Type: String
+
+This URL can be your customer in case of failure to return to your shop. This parameter   is used only for prepaid payments and comes into play, if the purchaser Payment transaction aborts. If this parameter is not set, trying ipayment, these fill with the URL of the requested page (HTTP Referer). If the value of the HTTP Referer does not exist, check the previous page using JavaScript on the history function of the Browser called.
+
+Better we set this.
+
+=head3 Silent mode
+
+CGI-Name: C<silent>
+Data Type: Boolean: B<use 1>
+
+
+=item A pre-generated session ID Session
+
+CGI Name: C<ipayment_session_id>
+Data type: String
+
+
+If a session ID is transmitted in the normal mode or silent mode, it must
+have been generated ID before and returned.
+
+B<I need to look into this>
+
+=head3 Payment details (CC & C.)
+
+
 =head2 See also
 
 http://git.linuxia.de/?p=ogone.git;a=blob;f=lib/Business/OnlinePayment/Ogone.pm;h=906d924e33d554291fd8f51fdc36d5ff9491245c;hb=HEAD
