@@ -38,7 +38,7 @@ my %urls = (
             failure_url => "http://linuxia.de/ipayment/failure",
            );
 
-$faulty{wsdl_file} = File::Spec->catfile(t => "ipayment.wsdl");
+$faulty{wsdl_file} = File::Spec->catfile("t", "ipayment.wsdl");
 
 # incrementally add the data to the hash
 
@@ -58,9 +58,10 @@ foreach my $k (qw/accountId trxuserId trxpassword/) {
 # adminactionpassword seems to be optional? But we need only to
 # generate the session, nothing more
 
+my $wsdl_file = File::Spec->catfile("t", "ipayment.wsdl");
 
 my $bopi = Business::OnlinePayment::IPayment->new(%accdata, %urls,
-                                                  wsdl_file => "ipayment.wsdl");
+                                                  wsdl_file => $wsdl_file);
 
 
 is_deeply($bopi->accountData, { %accdata } , "Stored values ok");
@@ -92,6 +93,7 @@ $bopi->transactionType('preauth');
 $bopi->trxAmount(1000); # 10 euros
 
 
+
 my $session_id = $bopi->session_id;
 
 my $ua = LWP::UserAgent->new;
@@ -114,3 +116,4 @@ my $uri = URI->new($response->header('location'));
 my %result = $uri->query_form;
 
 print Dumper(\%result);
+
