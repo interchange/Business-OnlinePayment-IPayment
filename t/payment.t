@@ -5,7 +5,7 @@ use Test::More;
 use Data::Dumper;
 use File::Spec;
 
-plan tests => 10;
+plan tests => 16;
 
 use Business::OnlinePayment::IPayment;
 
@@ -45,7 +45,7 @@ $faulty{wsdl_file} = File::Spec->catfile(t => "ipayment.wsdl");
 # created.
 foreach my $k (qw/accountId trxuserId trxpassword/) {
     eval { $faultybopi =
-             Business::OnlinePayment::IPayment->new(%faulty);
+             Business::OnlinePayment::IPayment->new(%faulty, %urls);
            $faultybopi->session_id;
        };
     # test all the bad values
@@ -68,10 +68,21 @@ is $bopi->processorUrls->{redirectUrl}, $urls{success_url}, "success ok";
 is $bopi->processorUrls->{silentErrorUrl}, $urls{failure_url}, "success ok";
 
 eval { $bopi->accountId("999") };
-ok($@, "Can't change the account id");
+ok($@, "Can't change the account id $@");
 
 eval { $bopi->trxuserId("999") };
-ok($@, "Can't change the trxuserId");
+ok($@, "Can't change the trxuserId $@");
+
+eval { $bopi->paymentType("test") };
+ok($@, "Can't set payment type to bogus value $@");
+
+eval { $bopi->transactionType("preauth") };
+ok(!$@, "Can change the transaction to allowed value");
+
+eval { $bopi->transactionType("test") };
+ok($@, "Can't set payment type to bogus value $@");
+
+
 
 # ok, no point in testing each of those, we trust Moo to do its job
 
