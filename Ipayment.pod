@@ -362,6 +362,58 @@ B<I need to look into this>
 =head3 Payment details (CC & C.)
 
 
+=head2 Preventing data tampering.
+
+
+=item Between each trasactions 2 minutes must pass, or it's
+considerated a duplicate.
+
+
+=item security hash
+
+CGI Name: C<trx_securityhash>
+Data type: string, maximum 32 characters
+
+Security hash of CGI command concatenating Id, amount, currency,
+password, Transaction Security Key (should be set in the configuration
+menu using ipayment). The hash is C<trxuser_id>, C<trx_amount>,
+C<trx_currency>, C<trxpassword> and the I<transaction security key>.
+
+  md5_hex($trxuser_id . $trx_amount . $trx_currency . $trxpassword . $sec_key); 
+
+  perl -e 'use Digest::MD5 qw/md5_hex/;
+                print  md5_hex("99998" . 5000 . "EUR" . 0 .  "testtest"), "\n";'
+  # => then in the form
+  <input type="hidden" name="trx_securityhash"
+         value="db4812171baef817dec0cd56c0f5c8cd">
+
+  # success:
+  'ret_transtime' => '07:56:51',
+  'ret_errorcode' => '0',
+  'redirect_needed' => '0',
+  'ret_transdate' => '13.03.13',
+  'addr_name' => 'Mario Grigi',
+  'trx_paymentmethod' => 'AmexCard',
+  'ret_authcode' => '',
+  'trx_currency' => 'EUR',
+  'ret_url_checksum' => 'c7d03875caca75717842336c3008b5ac',
+  'form_submit' => 'Process payment',
+  'ret_param_checksum' => '6bff5d51a44f048e887d1ab7677c4798',
+  'ret_ip' => '93.137.146.185',
+  'trx_typ' => 'auth',
+  'ret_trx_number' => '1-83400472',
+  'ret_status' => 'SUCCESS',
+  'trx_paymenttyp' => 'cc',
+  'trx_amount' => '5000',
+  'ret_booknr' => '1-83400472',
+  'trxuser_id' => '99998',
+  'trx_remoteip_country' => 'HR'
+
+So, tampering the data will result with the browser stuck at
+https://ipayment.de/merchant/99999/processor/2.0/ with this text:
+
+Account-ID: 99999 ERROR: The Transaction Security-Hash doesn't match or is empty. Manipulation? ("1d9db03e9d714a15b27b97506461b731")
+
 =head2 See also
 
 http://git.linuxia.de/?p=ogone.git;a=blob;f=lib/Business/OnlinePayment/Ogone.pm;h=906d924e33d554291fd8f51fdc36d5ff9491245c;hb=HEAD
