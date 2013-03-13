@@ -4,8 +4,9 @@ use warnings;
 use Test::More;
 use Data::Dumper;
 use File::Spec;
+use LWP::UserAgent;
 
-plan tests => 16;
+plan tests => 14;
 
 use Business::OnlinePayment::IPayment;
 
@@ -89,10 +90,26 @@ ok($@, "Can't set payment type to bogus value $@");
 $bopi->transactionType('preauth');
 
 
-for (1..3) {
-    ok($bopi->session_id, "Session: " . $bopi->session_id)
-};
+# for (1..3) {
+#    ok($bopi->session_id, "Session: " . $bopi->session_id)
+# };
 
 
+# let's try, ok?
 
+my $session_id = $bopi->session_id;
 
+my $ua = LWP::UserAgent->new;
+$ua->max_redirect(0);
+
+my $response = $ua->post('https://ipayment.de/merchant/99999/processor/2.0/',
+                         { ipayment_session_id => $session_id,
+                           addr_name => "Mario Rossi",
+                           silent => 1,
+                           cc_number => "371449635398431",
+                           cc_checkcode => "",
+                           cc_expdate_month => "02",
+                           cc_expdate_year => "2014" });
+
+diag Dumper($response->header('location'));
+is($response->status_line, '302 Found');
