@@ -3,12 +3,16 @@ package Business::OnlinePayment::IPayment;
 use 5.010001;
 use strict;
 use warnings FATAL => 'all';
-use Moo;
 
 # preparation
 use XML::Compile::WSDL11;
 use XML::Compile::SOAP11;
 use XML::Compile::Transport::SOAPHTTP;
+use Scalar::Util qw/looks_like_number/;
+
+use Moo;
+
+
 # use Log::Report mode => 'DEBUG';
 
 =head1 NAME
@@ -187,7 +191,12 @@ codes, see L<https://ipayment.de/> under B<Technik>. E.g C<EUR>
 
 =cut
 
-has trxCurrency => (is => 'ro');
+has trxCurrency => (is => 'rw',
+                    default => sub { return 'EUR'},
+                    isa => sub {
+                        die "Only one argument for trxCurrency" unless @_ == 1;
+                        die "Wrong currency" unless $_[0] =~ m/^[A-Z]{3}$/s;
+                    });
 
 
 =item trxAmount
@@ -198,7 +207,32 @@ B<not allowed>.
 
 =cut
 
-has trxAmount => (is => 'ro');
+has trxAmount => (is => 'rw',
+                  default => sub { return 0 },
+                  isa => sub {
+                      die "Not a number" unless looks_like_number($_[0]);
+                      my $num = $_[0];
+                      my $int = int($num);
+                      die unless $num eq $int # string-wise operation
+                  });
+
+
+
+=item transactionData
+
+Return the hashref with the transaction data details
+
+=cut
+
+
+sub transactionData {
+    my $self = shift;
+    my %trx = (
+               trxAmount => $self->trxAmount,
+               trxCurrency => $self->trxCurrency,
+              );
+    return \%trx;
+}
 
 
 =item transactionType
@@ -293,6 +327,7 @@ sub session_id {
                                        transactionType => $self->transactionType,
                                        paymentType => $self->paymentType,
                                        processorUrls => $self->processorUrls,
+                                       transactionData => $self->transactionData,
                                       ); # fixed
 
     # check if we got something valuable
@@ -304,37 +339,8 @@ sub session_id {
         return undef;
     }
 
-    # still here? good!
-    # empty the request_hash, we're good now
-    $self->_set_request_hash({});
-
     return $res->{createSessionResponse}->{sessionId};
     # please note that we don't store the sessionId. It's a fire and forget.
-}
-
-
-=item request_hash
-
-Internal usage. Use C<build_request> to stash data here.
-
-=cut
-
-has request_hash => (is => 'rwp',
-                     default => sub { return {} });
-
-
-=item build_request
-
-Stash the hashes which will be passed to the the SOAP server
-
-=cut
-
-sub _add_to_hash {
-    my $self = shift;
-    my ($key, $value) = @_;
-    die "Bad data passed\n" unless ($key && $value);
-    my $hashref = $self->request_hash;
-    $hashref->{$key} = $value;
 }
 
 

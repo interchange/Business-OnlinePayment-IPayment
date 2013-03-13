@@ -89,14 +89,8 @@ ok($@, "Can't set payment type to bogus value $@");
 # ok, no point in testing each of those, we trust Moo to do its job
 
 $bopi->transactionType('preauth');
+$bopi->trxAmount(1000); # 10 euros
 
-
-# for (1..3) {
-#    ok($bopi->session_id, "Session: " . $bopi->session_id)
-# };
-
-
-# let's try, ok?
 
 my $session_id = $bopi->session_id;
 
