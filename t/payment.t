@@ -56,12 +56,9 @@ my $bopi = Business::OnlinePayment::IPayment->new(%accdata,
                                                   wsdl_file => "ipayment.wsdl");
 
 
-my $expected = {
-                accountData => { %accdata }
-               };
-my %got  = $bopi->accountData;
+my $expected = { %accdata };
 
-is_deeply($expected, \%got, "Stored values ok");
+is_deeply($bopi->accountData, $expected, "Stored values ok");
 
 eval { $bopi->accountId("999") };
 ok($@, "Can't change the account id");

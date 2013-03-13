@@ -9,6 +9,7 @@ use Moo;
 use XML::Compile::WSDL11;
 use XML::Compile::SOAP11;
 use XML::Compile::Transport::SOAPHTTP;
+# use Log::Report mode => 'DEBUG';
 
 =head1 NAME
 
@@ -102,13 +103,16 @@ output will look like this:
 
 sub accountData {
     my $self = shift;
-    my %account_data = (
+    my %account_data = (  # mandatory
                         accountId => $self->accountId,
                         trxuserId => $self->trxuserId,
-                        trxpassword => $self->trxpassword,
-                        adminactionpassword => $self->adminactionpassword
-                       );
-    return (accountData => \%account_data);      
+                        trxpassword => $self->trxpassword
+                        );
+    my $adminpass = $self->adminactionpassword;
+    if (defined $adminpass) {
+        $account_data{adminactionpassword} = $adminpass;
+    }
+    return \%account_data;
 }
 
 =back
@@ -140,50 +144,61 @@ B<not allowed>.
 
 has trxAmount => (is => 'ro');
 
-=item avail_trx_type
-
-The following transaction types are allowed (for Silent Mode):
-
-     preauth
-     auth
-     base_check
-     check_save
-     voice_auth
-     voice_grefund_cap
-     re_preauth
-     re_auth
-     capture
-     reverse
-     refund_cap
-     grefund_cap
-
-=cut
-
-has avail_trx_type => (is => 'ro',
-                       default => sub {
-                           return {
-                                   preauth => 1,
-                                   auth => 1,
-                                   base_check => 1,
-                                   check_save => 1,
-                                   voice_auth => 1,
-                                   voice_grefund_cap => 1,
-                                   re_preauth => 1,
-                                   re_auth => 1,
-                                   capture => 1,
-                                   reverse => 1,
-                                   refund_cap => 1,
-                                   grefund_cap => 1,
-                                  }
-                             });
 
 =item transactionType
 
-The transaction type, choosen from the above types
+The transaction type, choosen from the types below. It defaults to C<auth>
+
+  preauth
+  auth
+  base_check
+  check_save
+  grefund_cap
+
 
 =cut
 
-has transactionType => (is => 'ro');
+has transactionType => (is => 'rw',
+                        default => sub { return "auth" },
+                        isa => sub {
+                            my %avail = (
+                                         preauth => 1,
+                                         auth => 1,
+                                         base_check => 1,
+                                         check_save => 1,
+                                         grefund_cap => 1,
+                                        );
+                            my $type = $_[0];
+                            die "Missing transaction type\n" unless $type;
+                            die "Only one arg is supported\n" unless @_ == 1;
+                            die "$type not valid\n" unless $avail{$type};
+                        }
+                       );
+
+=item paymentType
+
+The payment type, choosen from the types below. It defaults to C<cc> 
+
+  cc
+  elv
+  pp
+
+=cut
+
+has paymentType => (is => 'rw',
+                    default => sub { return "cc" },
+                    isa => sub {
+                        my %avail = (
+                                     pp => 1,
+                                     cc => 1,
+                                     elv => 1,
+                                    );
+                        my $type = $_[0];
+                        die "Missing payment type\n" unless $type;
+                        die "Only one arg is supported\n" unless @_ == 1;
+                        die "Invalid payment type $type\n" unless $avail{$type};
+                    });
+
 
 =back
 
@@ -218,7 +233,10 @@ sub session_id {
     }
 
     # do the request passing the accountData
-    my ($res, $trace) =  $self->soap->($self->accountData);
+    my ($res, $trace) =  $self->soap->(accountData => $self->accountData,
+                                       transactionType => $self->transactionType,
+                                       paymentType => $self->paymentType,
+                                      ); # fixed
 
     # check if we got something valuable
     unless ($res and
@@ -230,9 +248,38 @@ sub session_id {
     }
 
     # still here? good!
+    # empty the request_hash, we're good now
+    $self->_set_request_hash({});
+
     return $res->{createSessionResponse}->{sessionId};
     # please note that we don't store the sessionId. It's a fire and forget.
 }
+
+
+=item request_hash
+
+Internal usage. Use C<build_request> to stash data here.
+
+=cut
+
+has request_hash => (is => 'rwp',
+                     default => sub { return {} });
+
+
+=item build_request
+
+Stash the hashes which will be passed to the the SOAP server
+
+=cut
+
+sub _add_to_hash {
+    my $self = shift;
+    my ($key, $value) = @_;
+    die "Bad data passed\n" unless ($key && $value);
+    my $hashref = $self->request_hash;
+    $hashref->{$key} = $value;
+}
+
 
 
 =item soap
