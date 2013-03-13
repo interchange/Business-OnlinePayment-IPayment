@@ -187,6 +187,16 @@ has transactionType => (is => 'ro');
 
 =back
 
+=head3 error
+
+This accessors point to a XML::Compile::SOAP backtrace. The object is
+quite large and deeply nested, but it's there just in case we need it.
+
+=cut
+
+has error => (is => 'rwp');
+
+
 =head2 METHODS
 
 =over 4
@@ -199,11 +209,29 @@ This is the main method to call. The session is not stored in the object, becaus
 
 sub session_id {
     my $self = shift;
+    # clean eventually stale data
+    $self->_set_error(undef);
+
+    # init the soap, if not already
     unless ($self->soap) {
         $self->_init_soap();
     }
+
+    # do the request passing the accountData
     my ($res, $trace) =  $self->soap->($self->accountData);
+
+    # check if we got something valuable
+    unless ($res and
+            ref($res) eq 'HASH' and 
+            exists $res->{createSessionResponse}->{sessionId}) {
+        # ok, we got an error. Save the trace to the error and return
+        $self->_set_error($trace);
+        return undef;
+    }
+
+    # still here? good!
     return $res->{createSessionResponse}->{sessionId};
+    # please note that we don't store the sessionId. It's a fire and forget.
 }
 
 
