@@ -27,9 +27,14 @@ ok($@, "Error: $@");
 my %accdata = (
                accountId => 99999,
                trxuserId => 99999,
-               trxpassword =>0,
+               trxpassword => 0,
                adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
               );
+
+my %urls = (
+            success_url => "http://linuxia.de/ipayment/success",
+            failure_url => "http://linuxia.de/ipayment/failure",
+           );
 
 $faulty{wsdl_file} = File::Spec->catfile(t => "ipayment.wsdl");
 
@@ -52,13 +57,15 @@ foreach my $k (qw/accountId trxuserId trxpassword/) {
 # generate the session, nothing more
 
 
-my $bopi = Business::OnlinePayment::IPayment->new(%accdata,
+my $bopi = Business::OnlinePayment::IPayment->new(%accdata, %urls,
                                                   wsdl_file => "ipayment.wsdl");
 
 
-my $expected = { %accdata };
+is_deeply($bopi->accountData, { %accdata } , "Stored values ok");
 
-is_deeply($bopi->accountData, $expected, "Stored values ok");
+is scalar(keys %{$bopi->processorUrls}), 2, "Found two urls";
+is $bopi->processorUrls->{redirectUrl}, $urls{success_url}, "success ok";
+is $bopi->processorUrls->{silentErrorUrl}, $urls{failure_url}, "success ok";
 
 eval { $bopi->accountId("999") };
 ok($@, "Can't change the account id");
@@ -68,7 +75,7 @@ ok($@, "Can't change the trxuserId");
 
 # ok, no point in testing each of those, we trust Moo to do its job
 
-
+$bopi->transactionType('preauth');
 
 
 for (1..3) {

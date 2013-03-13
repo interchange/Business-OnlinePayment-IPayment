@@ -32,7 +32,7 @@ our $VERSION = '0.01';
 
 =head2 ACCESSORS
 
-=head3 Fixed values (AccountData)
+=head3 Fixed values (accountData and processorUrls)
 
 The following attributes should and can be set only in the
 constructor, as they are pretty much fixed values.
@@ -87,6 +87,7 @@ B<This is not the account password!>
 
 has adminactionpassword => (is => 'ro');
 
+
 =item accountData
 
 Accessor to retrieve the hash with the account data details. The
@@ -115,11 +116,66 @@ sub accountData {
     return \%account_data;
 }
 
+=item success_url 
+
+Mandatory (for us) field, where to redirect the user in case of success.
+
+=cut
+
+has success_url => (is => 'ro',
+                    isa => sub { die "Missing success url" unless $_[0] },
+                    default => sub { die "Missing success url" },
+                   );
+
+=item failure_url
+
+Mandatory (for us) field, where to redirect the user in case of failure.
+
+=cut
+
+has failure_url => (is => 'ro',
+                    isa => sub { die "Missing failure url" unless $_[0] },
+                    default => sub { die "Missing success url" },
+                   );
+
+
+=item hidden_trigger
+
+Optional url for the hidden trigger.
+
+=cut
+
+has hidden_trigger => (is => 'ro');
+
+
+=item processorUrls
+
+Return the hashref with the defined urls
+
+=cut
+
+sub processorUrls {
+    my $self = shift;
+    my %urls = (
+                redirectUrl => $self->success_url,
+               );
+    if ($self->failure_url) {
+        $urls{silentErrorUrl} = $self->failure_url,
+    }
+    if ($self->hidden_trigger) {
+        $urls{hiddenTriggerUrl} = $self->hidden_trigger
+    }
+    return \%urls
+}
+
+
 =back
 
-
-
 =head3 TransactionData
+
+These fields could be filled on the fly, but given that we want to add
+security, we do some additional checks here
+
 
 =over 4
 
@@ -236,6 +292,7 @@ sub session_id {
     my ($res, $trace) =  $self->soap->(accountData => $self->accountData,
                                        transactionType => $self->transactionType,
                                        paymentType => $self->paymentType,
+                                       processorUrls => $self->processorUrls,
                                       ); # fixed
 
     # check if we got something valuable
