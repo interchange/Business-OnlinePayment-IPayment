@@ -5,6 +5,7 @@ use Test::More;
 use Data::Dumper;
 use File::Spec;
 use LWP::UserAgent;
+use URI;
 
 plan tests => 14;
 
@@ -111,5 +112,11 @@ my $response = $ua->post('https://ipayment.de/merchant/99999/processor/2.0/',
                            cc_expdate_month => "02",
                            cc_expdate_year => "2014" });
 
-diag Dumper($response->header('location'));
+# diag Dumper($response->header('location'));
 is($response->status_line, '302 Found');
+
+my $uri = URI->new($response->header('location'));
+
+my %result = $uri->query_form;
+
+print Dumper(\%result);
