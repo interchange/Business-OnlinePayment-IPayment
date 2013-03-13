@@ -36,6 +36,8 @@ our $VERSION = '0.01';
 The following attributes should and can be set only in the
 constructor, as they are pretty much fixed values.
 
+=over 4
+
 =item wsdl_file
 
 The name of th WSDL file. It should be a local file.
@@ -80,12 +82,16 @@ The admin password.
 
 B<This is not the account password!>
 
+=back
+
 =cut 
 
 has adminactionpassword => (is => 'ro');
 
 
 =head3 TransactionData
+
+=over 4
 
 =item trxCurrency
 
@@ -110,7 +116,7 @@ has trxAmount => (is => 'ro');
 
 =item avail_trx_type
 
-Transaction types are allowed (for Silent Mode):
+The following transaction types are allowed (for Silent Mode):
 
      preauth
      auth
@@ -145,9 +151,19 @@ has avail_trx_type => (is => 'ro',
                                   }
                              });
 
+=item transactionType
+
+The transaction type, choosen from the above types
+
+=cut
+
 has transactionType => (is => 'ro');
 
+=back
+
 =head2 METHODS
+
+=over 4
 
 =item session_id
 
