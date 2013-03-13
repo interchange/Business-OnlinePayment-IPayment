@@ -3,10 +3,16 @@ package Business::OnlinePayment::IPayment;
 use 5.010001;
 use strict;
 use warnings FATAL => 'all';
+use Moo;
+
+# preparation
+use XML::Compile::WSDL11;
+use XML::Compile::SOAP11;
+use XML::Compile::Transport::SOAPHTTP;
 
 =head1 NAME
 
-Business::OnlinePayment::IPayment - The great new Business::OnlinePayment::IPayment!
+Business::OnlinePayment::IPayment - Checkout via Ipayment Silent Mode
 
 =head1 VERSION
 
@@ -19,35 +25,172 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use Business::OnlinePayment::IPayment;
-
     my $foo = Business::OnlinePayment::IPayment->new();
-    ...
 
-=head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+=head2 ACCESSORS
 
-=head1 SUBROUTINES/METHODS
+=head3 Fixed values (AccountData)
 
-=head2 function1
+The following attributes should and can be set only in the
+constructor, as they are pretty much fixed values.
 
-=cut
+=item wsdl_file
 
-sub function1 {
-}
-
-=head2 function2
+The name of th WSDL file. It should be a local file.
 
 =cut
 
-sub function2 {
-}
+has wsdl_file => (is => 'ro');
+
+=item accountId
+
+The Ipayment account id (the one put into the CGI url)
+
+=cut
+
+has accountId => (is => 'ro');
+
+=item trxuserId
+
+The application ID, you can in your ipayment configuration menu read
+using  Anwendung > Details 
+
+=cut
+
+has trxuserId => (is => 'ro');
+
+=item trxpassword
+
+For each application, there is an application password which
+automatically ipayment System is presented. The password consists of
+numbers. You will find the application password in your ipayment
+Anwendungen > Details
+
+B<This is not the account password!>
+
+=cut
+
+has trxpassword => (is => 'ro');
+
+=item adminactionpassword
+
+The admin password.
+
+B<This is not the account password!>
+
+=cut 
+
+has adminactionpassword => (is => 'ro');
+
+
+=head3 TransactionData
+
+=item trxCurrency
+
+Currency in which the payment is processed. There are all known
+three-letter ISO Currency codes allowed. A list of known currency
+codes, see L<https://ipayment.de/> under B<Technik>. E.g C<EUR>
+
+=cut
+
+has trxCurrency => (is => 'ro');
+
+
+=item trxAmount
+
+Amount to be debited, in the B<smallest currency unit>, for Example
+cents. B<Decimal points> or other characters except numbers are 
+B<not allowed>.
+
+=cut
+
+has trxAmount => (is => 'ro');
+
+=item avail_trx_type
+
+Transaction types are allowed (for Silent Mode):
+
+     preauth
+     auth
+     base_check
+     check_save
+     voice_auth
+     voice_grefund_cap
+     re_preauth
+     re_auth
+     capture
+     reverse
+     refund_cap
+     grefund_cap
+
+=cut
+
+has avail_trx_type => (is => 'ro',
+                       default => sub {
+                           return {
+                                   preauth => 1,
+                                   auth => 1,
+                                   base_check => 1,
+                                   check_save => 1,
+                                   voice_auth => 1,
+                                   voice_grefund_cap => 1,
+                                   re_preauth => 1,
+                                   re_auth => 1,
+                                   capture => 1,
+                                   reverse => 1,
+                                   refund_cap => 1,
+                                   grefund_cap => 1,
+                                  }
+                             });
+
+has transactionType => (is => 'ro');
+
+=head2 METHODS
+
+=item session_id
+
+This is the main method to call. The session is not stored in the object, because it can used only B<once>. So calling session_id will send the data to the SOAP service and retrieve the session key.
+
+=cut
+
+=item soap
+
+The SOAP object (used internally)
+
+=cut
+
+has soap => (is => 'rwp');
+
+
+# 
+# Name: createSession
+# Binding: ipaymentBinding
+# Endpoint: https://ipayment.de/service/3.0/
+# SoapAction: createSession
+# Input:
+#   use: literal
+#   namespace: https://ipayment.de/service_v3/binding
+#   message: createSessionRequest
+#   parts:
+#     accountData: https://ipayment.de/service_v3/extern:AccountData
+#     transactionData: https://ipayment.de/service_v3/extern:TransactionData
+#     transactionType: https://ipayment.de/service_v3/extern:TransactionType
+#     paymentType: https://ipayment.de/service_v3/extern:PaymentType
+#     options: https://ipayment.de/service_v3/extern:OptionData
+#     processorUrls: https://ipayment.de/service_v3/extern:ProcessorUrlData
+# Output:
+#   use: literal
+#   namespace: https://ipayment.de/service_v3/binding
+#   message: createSessionResponse
+#   parts:
+#     sessionId: http://www.w3.org/2001/XMLSchema:string
+# Style: rpc
+# Transport: http://schemas.xmlsoap.org/soap/http
+# 
+
+=back
 
 =head1 AUTHOR
 

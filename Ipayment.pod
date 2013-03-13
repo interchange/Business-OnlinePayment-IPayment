@@ -159,7 +159,7 @@ Data type: String
 The admin password action is only for administrative transactions,
 such as cancellations, Chargebacks or debits needed.
 
-So it probably shouldn't be exposed. A bit unclear.
+Used by the SOAP request.
 
 Log into the ipayment configuration menu is not possible with this password.
 
@@ -451,6 +451,12 @@ parameters of the full URL of the called script cut, the Transaction
 Security Key attach and then calculate the MD5 checksum. If the
 checksum is not the value parameter C<ret_url_checksum> matches, there is
 probably a manipulation of URL before.
+
+=head2 SOAP
+
+=head3 Endpoint
+
+L<https://ipayment.de/service/3.0/>
 
 
 =head2 See also
