@@ -82,11 +82,37 @@ The admin password.
 
 B<This is not the account password!>
 
-=back
-
 =cut 
 
 has adminactionpassword => (is => 'ro');
+
+=item accountData
+
+Accessor to retrieve the hash with the account data details. The
+output will look like this:
+
+ accountData => {
+                 accountId => 99999,
+                 trxuserId => 99999,
+                 trxpassword =>0,
+                 adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe'}
+
+
+=cut
+
+sub accountData {
+    my $self = shift;
+    my %account_data = (
+                        accountId => $self->accountId,
+                        trxuserId => $self->trxuserId,
+                        trxpassword => $self->trxpassword,
+                        adminactionpassword => $self->adminactionpassword
+                       );
+    return (accountData => \%account_data);      
+}
+
+=back
+
 
 
 =head3 TransactionData
@@ -171,6 +197,16 @@ This is the main method to call. The session is not stored in the object, becaus
 
 =cut
 
+sub session_id {
+    my $self = shift;
+    unless ($self->soap) {
+        $self->_init_soap();
+    }
+    my ($res, $trace) =  $self->soap->($self->accountData);
+    return $res->{createSessionResponse}->{sessionId};
+}
+
+
 =item soap
 
 The SOAP object (used internally)
@@ -180,31 +216,43 @@ The SOAP object (used internally)
 has soap => (is => 'rwp');
 
 
-# 
-# Name: createSession
-# Binding: ipaymentBinding
-# Endpoint: https://ipayment.de/service/3.0/
-# SoapAction: createSession
-# Input:
-#   use: literal
-#   namespace: https://ipayment.de/service_v3/binding
-#   message: createSessionRequest
-#   parts:
-#     accountData: https://ipayment.de/service_v3/extern:AccountData
-#     transactionData: https://ipayment.de/service_v3/extern:TransactionData
-#     transactionType: https://ipayment.de/service_v3/extern:TransactionType
-#     paymentType: https://ipayment.de/service_v3/extern:PaymentType
-#     options: https://ipayment.de/service_v3/extern:OptionData
-#     processorUrls: https://ipayment.de/service_v3/extern:ProcessorUrlData
-# Output:
-#   use: literal
-#   namespace: https://ipayment.de/service_v3/binding
-#   message: createSessionResponse
-#   parts:
-#     sessionId: http://www.w3.org/2001/XMLSchema:string
-# Style: rpc
-# Transport: http://schemas.xmlsoap.org/soap/http
-# 
+sub _init_soap {
+    my $self = shift;
+    my $wsdl = XML::Compile::WSDL11->new($self->wsdl_file);
+    # compile the object and store it in soap
+    my $client = $wsdl->compileClient('createSession');
+    $self->_set_soap($client);
+}
+
+
+
+
+=head2 SOAP specification
+
+  Name: createSession
+  Binding: ipaymentBinding
+  Endpoint: https://ipayment.de/service/3.0/
+  SoapAction: createSession
+  Input:
+    use: literal
+    namespace: https://ipayment.de/service_v3/binding
+    message: createSessionRequest
+    parts:
+      accountData: https://ipayment.de/service_v3/extern:AccountData
+      transactionData: https://ipayment.de/service_v3/extern:TransactionData
+      transactionType: https://ipayment.de/service_v3/extern:TransactionType
+      paymentType: https://ipayment.de/service_v3/extern:PaymentType
+      options: https://ipayment.de/service_v3/extern:OptionData
+      processorUrls: https://ipayment.de/service_v3/extern:ProcessorUrlData
+  Output:
+    use: literal
+    namespace: https://ipayment.de/service_v3/binding
+    message: createSessionResponse
+    parts:
+      sessionId: http://www.w3.org/2001/XMLSchema:string
+  Style: rpc
+  Transport: http://schemas.xmlsoap.org/soap/http
+  
 
 =back
 
