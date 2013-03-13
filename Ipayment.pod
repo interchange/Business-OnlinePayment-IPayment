@@ -361,13 +361,14 @@ B<I need to look into this>
 
 =head3 Payment details (CC & C.)
 
-
-=head2 Preventing data tampering.
-
-
 =item Between each trasactions 2 minutes must pass, or it's
 considerated a duplicate.
 
+
+=head2 Preventing data tampering.
+
+The following parameters apply when the secret key of the application
+is set in the control panel.
 
 =item security hash
 
@@ -413,6 +414,44 @@ So, tampering the data will result with the browser stuck at
 https://ipayment.de/merchant/99999/processor/2.0/ with this text:
 
 Account-ID: 99999 ERROR: The Transaction Security-Hash doesn't match or is empty. Manipulation? ("1d9db03e9d714a15b27b97506461b731")
+
+=item Param checksum in the success callback
+
+CGI Name: C<ret_param_checksum>
+Data type: String
+
+The hash is the md5sum of the concatenation of C<trxuser_id>
+C<trx_amount>, C<trx_currency>, C<ret_authcode>, C<ret_booknr> and
+I<transaction security key>.
+
+If one of the fields is empty or not returned, use the empty string.
+
+
+The checksum is only in case of success of a transaction
+(ret_errorcode = 0 and redirect_ needed = 0) are available.
+
+ perl -e 'use Digest::MD5 qw/md5_hex/;
+      print md5_hex("99998" . 5000 . "EUR" . "" . "1-83400472" .  "testtest");'
+
+ # => 6bff5d51a44f048e887d1ab7677c4798 and it matches
+
+
+=item Checksum of CGI setback URL
+
+CGI Name: C<ret_url_checksum>
+Data type: String
+
+For the formation of the hash in the URL will be a setback & and transaction security
+Attached to the application key. For this string, the MD5 checksum is generated.
+The calculated hash is ret_url_checksum as parameters to the URL setback behind all
+another parameter is appended to the end.
+
+To verify the checksum you must remove C<ret_url_checksum> the
+parameters of the full URL of the called script cut, the Transaction
+Security Key attach and then calculate the MD5 checksum. If the
+checksum is not the value parameter C<ret_url_checksum> matches, there is
+probably a manipulation of URL before.
+
 
 =head2 See also
 
