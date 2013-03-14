@@ -8,7 +8,20 @@ use Moo;
 
 Business::OnlinePayment::IPayment - Helper class for Ipayment responses
 
-=cut
+=head1 SYNOPSYS
+
+  # where %params are the GET parameters
+  $ipayres = Business::OnlinePayment::IPayment::Response->new(%params);
+
+  $ipayres->set_credentials(
+                          my_amount   => "5000",
+                          my_currency => "EUR",
+                          my_userid   => "99999",
+                          my_security_key => "testtest",
+                         );
+  ok($ipayres->is_valid, "Payment looks ok");
+
+=head1 DESCRIPTION
 
 =head2 ACCESSORS
 
