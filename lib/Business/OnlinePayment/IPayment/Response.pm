@@ -258,7 +258,7 @@ See C<trxuserId> in Business::OnlinePayment::IPayment
 has trxuser_id              => (is => 'ro');
 
 
-=item trx_remoteip_countr
+=item trx_remoteip_country
 
 Iso code of the IP which does the transaction
 
@@ -294,8 +294,6 @@ Our currency
 =cut
 
 has my_currency => (is => 'rw');
-
-=cut
 
 =head3 my_security_key
 

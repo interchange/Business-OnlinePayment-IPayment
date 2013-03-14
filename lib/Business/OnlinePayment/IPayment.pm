@@ -416,6 +416,7 @@ sub _init_soap {
     $self->_set_soap($client);
 }
 
+=back
 
 =head2 SOAP specification
 
@@ -444,10 +445,9 @@ sub _init_soap {
   Transport: http://schemas.xmlsoap.org/soap/http
   
 
-=back
-
-
 =head2 SECURITY
+
+=over 4
 
 =item trx_securityhash
 
@@ -469,10 +469,11 @@ sub trx_securityhash {
                    $self->app_security_key);
 }
 
+=back
 
 =head2 UTILITIES
 
-=head3 validate_result($rawuri) or validate_result(%params)
+=head3 get_response_obj($rawuri) or get_response_obj(%params)
 
 To be sure the transaction happened as aspected, we have to check this back.
 Expected hash:
