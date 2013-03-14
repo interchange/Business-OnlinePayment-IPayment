@@ -1,85 +1,284 @@
-Business-OnlinePayment-IPayment
+NAME
+    Business::OnlinePayment::IPayment - Checkout via Ipayment Silent Mode
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+VERSION
+    Version 0.01
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+SYNOPSIS
+      use Business::OnlinePayment::IPayment;
+      my %account = (
+                     accountId => 99999,
+                     trxuserId => 99998,
+                     trxpassword => 0,
+                     adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
+                     app_security_key => 'testtest',
+                     wsdl_file => $wsdl_file,
+                     %urls
+                    );
+  
+      my $secbopi = Business::OnlinePayment::IPayment->new(%account);
+      $secbopi->transactionType('preauth');
+      $secbopi->trxAmount(5000); # 50 euros
+  
+      $response = $ua->post('https://ipayment.de/merchant/99999/processor/2.0/',
+                            { ipayment_session_id => $secbopi->session_id,
+                              addr_name => "Mario Pegula",
+                              silent => 1,
+                              cc_number => "4111111111111111",
+                              cc_checkcode => "",
+                              cc_expdate_month => "02",
+                              trx_securityhash => $secbopi->trx_securityhash,
+                              cc_expdate_year => "2014" });
+  
+  ACCESSORS
+    Fixed values (accountData and processorUrls)
+    The following attributes should and can be set only in the constructor,
+    as they are pretty much fixed values.
 
+    wsdl_file
+        The name of th WSDL file. It should be a local file.
 
-INSTALLATION
+    accountId
+        The Ipayment account id (the one put into the CGI url)
 
-To install this module, run the following commands:
+    trxuserId
+        The application ID, you can in your ipayment configuration menu read
+        using Anwendung > Details
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+    trxpassword
+        For each application, there is an application password which
+        automatically ipayment System is presented. The password consists of
+        numbers. You will find the application password in your ipayment
+        Anwendungen > Details
 
-SUPPORT AND DOCUMENTATION
+        This is not the account password!
 
-After installing, you can find documentation for this module with the
-perldoc command.
+    adminactionpassword
+        The admin password.
 
-    perldoc Business::OnlinePayment::IPayment
+        This is not the account password!
 
-You can also look for information at:
+    app_security_key
+        If this attribute is set, we will (and shall) send a checksum for
+        the parameters.
 
-    RT, CPAN's request tracker (report bugs here)
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Business-OnlinePayment-IPayment
+        Without this, we are opened to tampering
 
-    AnnoCPAN, Annotated CPAN documentation
+    accountData
+        Accessor to retrieve the hash with the account data details. The
+        output will look like this:
+
+         accountData => {
+                         accountId => 99999,
+                         trxuserId => 99999,
+                         trxpassword =>0,
+                         adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe'}
+
+    success_url
+        Mandatory (for us) field, where to redirect the user in case of
+        success.
+
+    failure_url
+        Mandatory (for us) field, where to redirect the user in case of
+        failure.
+
+    hidden_trigger
+        Optional url for the hidden trigger.
+
+    processorUrls
+        Return the hashref with the defined urls
+
+    TransactionData
+    These fields could be filled on the fly, but given that we want to add
+    security, we do some additional checks here
+
+    trxCurrency
+        Currency in which the payment is processed. There are all known
+        three-letter ISO Currency codes allowed. A list of known currency
+        codes, see https://ipayment.de/ under Technik. E.g `EUR'
+
+    trxAmount
+        Amount to be debited, in the smallest currency unit, for Example
+        cents. Decimal points or other characters except numbers are not
+        allowed.
+
+    shopper_id
+        This parameter allows you to specify a unique ID for an order
+        process. Under this Shopper ID is saved to the associated
+        transaction in order ipayment system. The Shopper ID must be unique
+        only if the extended examination of the IDs Avoidance of double use
+        transactions.
+
+    transactionData
+        Return the hashref with the transaction data details
+
+    transactionType
+        The transaction type, choosen from the types below. It defaults to
+        `auth'
+
+          preauth
+          auth
+          base_check
+          check_save
+          grefund_cap
+
+    paymentType
+        The payment type, choosen from the types below. It defaults to `cc'
+
+          cc
+          elv
+          pp
+
+    error
+    This accessors point to a XML::Compile::SOAP backtrace. The object is
+    quite large and deeply nested, but it's there just in case we need it.
+
+  METHODS
+    session_id
+        This is the main method to call. The session is not stored in the
+        object, because it can used only once. So calling session_id will
+        send the data to the SOAP service and retrieve the session key.
+
+    soap
+        The SOAP object (used internally)
+
+  SOAP specification
+      Name: createSession
+      Binding: ipaymentBinding
+      Endpoint: https://ipayment.de/service/3.0/
+      SoapAction: createSession
+      Input:
+        use: literal
+        namespace: https://ipayment.de/service_v3/binding
+        message: createSessionRequest
+        parts:
+          accountData: https://ipayment.de/service_v3/extern:AccountData
+          transactionData: https://ipayment.de/service_v3/extern:TransactionData
+          transactionType: https://ipayment.de/service_v3/extern:TransactionType
+          paymentType: https://ipayment.de/service_v3/extern:PaymentType
+          options: https://ipayment.de/service_v3/extern:OptionData
+          processorUrls: https://ipayment.de/service_v3/extern:ProcessorUrlData
+      Output:
+        use: literal
+        namespace: https://ipayment.de/service_v3/binding
+        message: createSessionResponse
+        parts:
+          sessionId: http://www.w3.org/2001/XMLSchema:string
+      Style: rpc
+      Transport: http://schemas.xmlsoap.org/soap/http
+  
+  SECURITY
+    trx_securityhash
+        If we have a security key, we trigger the hash generation, so we can
+        double check the result.
+
+  UTILITIES
+    get_response_obj($rawuri) or get_response_obj(%params)
+    To be sure the transaction happened as aspected, we have to check this
+    back. Expected hash:
+
+    Success:
+
+      'ret_transtime' => '08:42:05',       'ret_transtime' => '08:42:03',
+      'ret_errorcode' => '0',              'ret_errorcode' => '0',
+      'redirect_needed' => '0',            'redirect_needed' => '0',
+      'ret_transdate' => '14.03.13',       'ret_transdate' => '14.03.13',
+      'addr_name' => 'Mario Pegula',       'addr_name' => 'Mario Rossi',
+      'trx_paymentmethod' => 'VisaCard',   'trx_paymentmethod' => 'AmexCard',
+      'ret_authcode' => '',                'ret_authcode' => '',
+      'trx_currency' => 'EUR',             'trx_currency' => 'EUR',
+      'ret_url_checksum' => 'md5sum',
+      'ret_param_checksum' => 'md5sum',
+      'ret_ip' => '88.198.37.147',         'ret_ip' => '88.198.37.147',
+      'trx_typ' => 'preauth',              'trx_typ' => 'preauth',
+      'ret_trx_number' => '1-83443831',    'ret_trx_number' => '1-83443830',
+      'ret_status' => 'SUCCESS',           'ret_status' => 'SUCCESS',
+      'trx_paymenttyp' => 'cc',            'trx_paymenttyp' => 'cc',
+      'trx_paymentdata_country' => 'US',
+      'trx_amount' => '5000',              'trx_amount' => '1000',
+      'ret_booknr' => '1-83443831',        'ret_booknr' => '1-83443830',
+      'trxuser_id' => '99998',             'trxuser_id' => '99999',
+      'trx_remoteip_country' => 'DE'       'trx_remoteip_country' => 'DE'
+
+    Returns a Business::OnlinePayment::IPayment::Response object, so you can
+    call ->is_success on it.
+
+    This is just a shortcuts for
+
+      Business::OnlinePayment::IPayment::Response->new(%params);
+
+    ipayment_cgi_location
+    Returns the correct url where the customer posts the CC data, which is
+    simply: https://ipayment.de/merchant/<Account-ID/processor/2.0/>
+
+AUTHOR
+    Marco Pessotto, `<melmothx at gmail.com>'
+
+BUGS
+    Please report any bugs or feature requests to
+    `bug-business-onlinepayment-ipayment at rt.cpan.org', or through the web
+    interface at
+    http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Business-OnlinePayment-IP
+    ayment. I will be notified, and then you'll automatically be notified of
+    progress on your bug as I make changes.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Business::OnlinePayment::IPayment
+
+    You can also look for information at:
+
+    * RT: CPAN's request tracker (report bugs here)
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Business-OnlinePayment-IPay
+        ment
+
+    * AnnoCPAN: Annotated CPAN documentation
         http://annocpan.org/dist/Business-OnlinePayment-IPayment
 
-    CPAN Ratings
+    * CPAN Ratings
         http://cpanratings.perl.org/d/Business-OnlinePayment-IPayment
 
-    Search CPAN
+    * Search CPAN
         http://search.cpan.org/dist/Business-OnlinePayment-IPayment/
 
-
+ACKNOWLEDGEMENTS
 LICENSE AND COPYRIGHT
+    Copyright 2013 Marco Pessotto.
 
-Copyright (C) 2013 Marco Pessotto
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the the Artistic License (2.0). You may obtain a copy
+    of the full license at:
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of the the Artistic License (2.0). You may obtain a
-copy of the full license at:
+    http://www.perlfoundation.org/artistic_license_2_0
 
-L<http://www.perlfoundation.org/artistic_license_2_0>
+    Any use, modification, and distribution of the Standard or Modified
+    Versions is governed by this Artistic License. By using, modifying or
+    distributing the Package, you accept this license. Do not use, modify,
+    or distribute the Package, if you do not accept this license.
 
-Any use, modification, and distribution of the Standard or Modified
-Versions is governed by this Artistic License. By using, modifying or
-distributing the Package, you accept this license. Do not use, modify,
-or distribute the Package, if you do not accept this license.
+    If your Modified Version has been derived from a Modified Version made
+    by someone other than you, you are nevertheless required to ensure that
+    your Modified Version complies with the requirements of this license.
 
-If your Modified Version has been derived from a Modified Version made
-by someone other than you, you are nevertheless required to ensure that
-your Modified Version complies with the requirements of this license.
+    This license does not grant you the right to use any trademark, service
+    mark, tradename, or logo of the Copyright Holder.
 
-This license does not grant you the right to use any trademark, service
-mark, tradename, or logo of the Copyright Holder.
+    This license includes the non-exclusive, worldwide, free-of-charge
+    patent license to make, have made, use, offer to sell, sell, import and
+    otherwise transfer the Package with respect to any patent claims
+    licensable by the Copyright Holder that are necessarily infringed by the
+    Package. If you institute patent litigation (including a cross-claim or
+    counterclaim) against any party alleging that the Package constitutes
+    direct or contributory patent infringement, then this Artistic License
+    to you shall terminate on the date that such litigation is filed.
 
-This license includes the non-exclusive, worldwide, free-of-charge
-patent license to make, have made, use, offer to sell, sell, import and
-otherwise transfer the Package with respect to any patent claims
-licensable by the Copyright Holder that are necessarily infringed by the
-Package. If you institute patent litigation (including a cross-claim or
-counterclaim) against any party alleging that the Package constitutes
-direct or contributory patent infringement, then this Artistic License
-to you shall terminate on the date that such litigation is filed.
-
-Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER
-AND CONTRIBUTORS "AS IS' AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
-THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE, OR NON-INFRINGEMENT ARE DISCLAIMED TO THE EXTENT PERMITTED BY
-YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
-CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
-CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER
+    AND CONTRIBUTORS "AS IS' AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
+    THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+    PURPOSE, OR NON-INFRINGEMENT ARE DISCLAIMED TO THE EXTENT PERMITTED BY
+    YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
+    CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
+    CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
+    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
