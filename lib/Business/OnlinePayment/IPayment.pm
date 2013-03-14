@@ -9,6 +9,7 @@ use XML::Compile::WSDL11;
 use XML::Compile::SOAP11;
 use XML::Compile::Transport::SOAPHTTP;
 use Scalar::Util qw/looks_like_number/;
+use Digest::MD5 qw/md5_hex/;
 
 use Moo;
 
@@ -30,10 +31,33 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use Business::OnlinePayment::IPayment;
-    my $foo = Business::OnlinePayment::IPayment->new();
-
-
+  use Business::OnlinePayment::IPayment;
+  my %account = (
+                 accountId => 99999,
+                 trxuserId => 99998,
+                 trxpassword => 0,
+                 adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
+                 app_security_key => 'testtest',
+                 wsdl_file => $wsdl_file,
+                 %urls
+                );
+  
+  
+  my $secbopi = Business::OnlinePayment::IPayment->new(%account);
+  $secbopi->transactionType('preauth');
+  $secbopi->trxAmount(5000); # 50 euros
+  
+  $response = $ua->post('https://ipayment.de/merchant/99999/processor/2.0/',
+                        { ipayment_session_id => $secbopi->session_id,
+                          addr_name => "Mario Pegula",
+                          silent => 1,
+                          cc_number => "4111111111111111",
+                          cc_checkcode => "",
+                          cc_expdate_month => "02",
+                          trx_securityhash => $secbopi->trx_securityhash,
+                          cc_expdate_year => "2014" });
+  
+  
 =head2 ACCESSORS
 
 =head3 Fixed values (accountData and processorUrls)
@@ -90,6 +114,18 @@ B<This is not the account password!>
 =cut 
 
 has adminactionpassword => (is => 'ro');
+
+
+=item app_security_key
+
+If this attribute is set, we will (and shall) send a checksum for the
+parameters.
+
+B<Without this, we are opened to tampering>
+
+=cut
+
+has app_security_key => (is => 'ro');
 
 
 =item accountData
@@ -363,8 +399,6 @@ sub _init_soap {
 }
 
 
-
-
 =head2 SOAP specification
 
   Name: createSession
@@ -393,6 +427,44 @@ sub _init_soap {
   
 
 =back
+
+
+=head2 SECURITY
+
+
+=cut
+
+
+
+sub trx_securityhash {
+    my $self = shift;
+    unless ($self->app_security_key) {
+        warn "hash requested, but app_security_key wasn't provided!\n"
+    }
+    return md5_hex($self->trxuserId .
+                   $self->trxAmount .
+                   $self->trxCurrency .
+                   $self->trxpassword .
+                   $self->app_security_key);
+}
+
+
+=head2 UTILITIES
+
+=head2 ipayment_cgi_location
+
+Returns the correct url where the customer posts the CC data, which is simply:
+L<https://ipayment.de/merchant/<Account-ID>/processor/2.0/>
+
+=cut
+
+sub ipayment_cgi_location {
+    my $self = shift;
+    return 'https://ipayment.de/merchant/' . $self->accountId
+      . '/processor/2.0/';
+}
+
+
 
 =head1 AUTHOR
 
