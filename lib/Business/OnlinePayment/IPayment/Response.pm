@@ -1,6 +1,7 @@
 package Business::OnlinePayment::IPayment::Response;
 use strict;
 use warnings;
+use utf8;
 use Digest::MD5 qw/md5_hex/;
 use Moo;
 
@@ -328,6 +329,7 @@ sub set_credentials {
     }
 }
 
+
 =head2 METHODS
 
 =head3 is_success
@@ -410,6 +412,65 @@ sub is_valid {
         warn "$expectedhash isn't " . $self->ret_param_checksum . "\n";
         return 0;
     }
+}
+
+=head3 url_is_valid($raw_undecoded_url)
+
+You may ask for the validation of the url, which comes with a checksum
+attached. For this you should have already provided the security key
+and you should pass the raw undecoded url as argument.
+
+Return false on failure, true on success
+
+Original German doc (left in place because the translation was drunk).
+
+CGI-Name: ret_url_checksum 
+Webservice-Name: - (nicht benötigt) 
+Datentyp: String 
+
+Wenn Sie für eine Transaktion eine Anwendung mit einem Security-Key
+verwendet haben, wird dieser Parameter mit einem MD5-Hash an die
+Rücksprungs-URL angehängt.
+
+Für die Bildung des Hash wird an die Rücksprungs-URL ein & und der
+Transaktions-Security- Key der Anwendung angehängt. Für diese
+Zeichenkette wird die MD5-Prüfsumme generiert. Der ermittelte Hash
+wird als Parameter ret_url_checksum an die Rücksprungs-URL hinter alle
+anderen Parameter an das Ende angehängt.
+
+Um die Prüfsumme zu überprüfen müssen Sie den Parameter
+ret_url_checksum von der vollständigen URL des aufgerufenen Scriptes
+abschneiden, den Transaktions-Security-Key anhängen und dann die
+MD5-Prüfsumme ermitteln. Wenn die Prüfsumme nicht mit dem Wert des
+Parameters ret_url_checksum übereinstimmt, liegt vermutlich eine
+Manipulation der URL vor.
+
+=cut
+
+sub url_is_valid {
+    my ($self, $url) = @_;
+    warn "Missing url for url validation"
+      unless $url;
+    warn "Missing secret key for url validation"
+      unless $self->my_security_key;
+    unless ($url and $self->my_security_key) {
+        return 0
+    }
+
+    my $checksum;
+    # warn $url;
+    # unclear if the & should be removed 
+    if ($url =~ m/&ret_url_checksum=([A-Za-z0-9]+)$/) {
+        $checksum = $1;
+        # it looks like the trailing & should be left in place
+        $url =~ s/ret_url_checksum=([A-Za-z0-9]+)$//
+    } else {
+        warn "checksum not found\n";
+        return 0
+    }
+    
+    my $ourchecksum = md5_hex($url . $self->my_security_key);
+    return $ourchecksum eq $checksum;
 }
 
 

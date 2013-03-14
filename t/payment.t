@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 24;
+plan tests => 25;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -172,18 +172,25 @@ ok($@, "no secret key: $@");
 # with security key pass is ok.
 $ipayres = Business::OnlinePayment::IPayment::Response->new(%params);
 $ipayres->my_security_key("testtest");
-ok($ipayres->is_valid);
+ok($ipayres->is_success && $ipayres->is_valid, "Payment looks ok");
+ok($ipayres->url_is_valid($response->header('location')),
+   "Url looks untampered");
+
 $ipayres->my_security_key("testtestX");
 ok(!$ipayres->is_valid, "wrong secret key yields failure");
+
+
+
+
 
 diag "Please wait 2 minutes before running me again, or the tests will fail!";
 
 sub test_success {
-    my $response = shift;
-    is($response->status_line, '302 Found', "We are redirected");
-    unlike($response->decoded_content, qr/ERROR/, "No error");
-    like($response->decoded_content, qr/<a href="http:/, "Redirect");
-    my $uri = URI->new($response->header('location'));
+    my $r = shift;
+    is($r->status_line, '302 Found', "We are redirected");
+    unlike($r->decoded_content, qr/ERROR/, "No error");
+    like($r->decoded_content, qr/<a href="http:/, "Redirect");
+    my $uri = URI->new($r->header('location'));
     # my %result = $uri->query_form;
     # print Dumper(\%result);
 }

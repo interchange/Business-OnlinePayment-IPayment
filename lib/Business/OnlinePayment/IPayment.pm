@@ -456,8 +456,6 @@ double check the result.
 
 =cut
 
-
-
 sub trx_securityhash {
     my $self = shift;
     unless ($self->app_security_key) {
@@ -532,23 +530,6 @@ sub get_response_obj {
     }
     return $resobj;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 =head3 ipayment_cgi_location
 
