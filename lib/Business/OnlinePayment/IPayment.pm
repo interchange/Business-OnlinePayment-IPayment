@@ -449,6 +449,10 @@ sub _init_soap {
 
 =head2 SECURITY
 
+=item trx_securityhash
+
+If we have a security key, we trigger the hash generation, so we can
+double check the result.
 
 =cut
 
@@ -457,7 +461,8 @@ sub _init_soap {
 sub trx_securityhash {
     my $self = shift;
     unless ($self->app_security_key) {
-        warn "hash requested, but app_security_key wasn't provided!\n"
+        warn "hash requested, but app_security_key wasn't provided!\n";
+        return;
     }
     return md5_hex($self->trxuserId .
                    $self->trxAmount .
@@ -500,9 +505,13 @@ Success:
 Returns a Business::OnlinePayment::IPayment::Response object, so you
 can call ->is_success on it.
 
+This is just a shortcuts for 
+
+  Business::OnlinePayment::IPayment::Response->new(%params);
+
 =cut
 
-sub validate_result {
+sub get_response_obj {
     my ($self, @args) = @_;
     my %details;
     my $resobj;
@@ -516,6 +525,10 @@ sub validate_result {
     elsif ((@args % 2) == 0) {
         $resobj = Business::OnlinePayment::IPayment::Response
           ->new(@args);
+    }
+    else {
+        die "Arguments to validate the response not provided "
+          . "(paramaters or raw url";
     }
     return $resobj;
 }

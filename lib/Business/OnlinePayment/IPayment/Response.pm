@@ -111,7 +111,8 @@ parameters may in certain cases be empty.
 
 =cut
 
-has ret_authcode            => (is => 'ro');
+has ret_authcode => (is => 'ro',
+                     default => sub { return ""});
 
 
 =item trx_currency            
@@ -230,7 +231,8 @@ Used for the checksum and apparently not documented.
 
 =cut
 
-has ret_booknr              => (is => 'ro');
+has ret_booknr              => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item trxuser_id              
@@ -252,15 +254,144 @@ Iso code of the IP which does the transaction
 
 has trx_remoteip_country    => (is => 'ro');
 
+=head2 Setters needed for the hash checking
+
+=head3 my_amount
+
+You need to set the C<my_amount> attribute if you want to check
+the hash.
+
+=cut
+
+has my_amount => (is => 'rw');
+
+=head3 my_userid
+
+Our trxuser_id 
+
+=cut 
+
+has my_userid => (is => 'rw');
+
+=head3 my_currency
+
+Our currency
+
+=cut
+
+has my_currency => (is => 'rw');
+
+=cut
+
+=head3 my_security_key
+
+The security key
+
+=cut
+
+has my_security_key => (is => 'rw');
+
+
+=head3 set_credentials(%hash)
+
+As a shortcut, you can set the above attribute using this method
+
+=cut
+
+sub set_credentials {
+    my ($self, %args) = @_;
+    if (defined $args{my_amount} and
+        defined $args{my_userid} and
+        defined $args{my_currency} and
+        defined $args{my_security_key}) {
+        
+        $self->my_amount($args{my_amount});
+        $self->my_currency($args{my_currency});
+        $self->my_userid($args{my_userid});
+        $self->my_security_key($args{my_security_key});
+    }
+    else {
+        die "Wrong arguments. See the doc for my_credentials\n"
+    }
+}
+
+=head2 METHODS
+
+=head3 is_success
+
+Return true if the transaction was successful, undef otherwise
+
+=cut
+
 sub is_success {
     my $self = shift;
-    if ($self->ret_status eq 'SUCCESS') {
+    if ($self->ret_status eq 'SUCCESS' and !$self->ret_errorcode) {
         return 1;
     }
     else {
         return undef;
     }
 }
+
+=head3 is_error
+
+Return true if the transaction raised an error, undef otherwise.
+You can access the German error message with the accessor
+C<ret_errormsg>
+
+=cut
+
+sub is_error {
+    my $self = shift;
+    if ($self->ret_status eq 'ERROR') {
+        return 1;
+    }
+    else {
+        return undef;
+    }
+}
+
+
+sub is_valid {
+    my $self = shift;
+    unless ($self->ret_param_checksum) {
+        warn "No checksum provided!\n";
+        return 0;
+    }
+
+    die "Validation asked, but you didn't provide the security key!\n"
+      unless $self->my_security_key;
+    
+    
+    unless ($self->my_amount) {
+        warn "Using the data passed by the server\n";
+        $self->my_amount($self->trx_amount);
+    }
+    unless ($self->my_currency) {
+        warn "Using the currency passed by the server\n";
+        $self->my_currency($self->trx_currency);
+    }
+    unless ($self->my_userid) {
+        warn "Using the userid passed by the server\n";
+        $self->my_userid($self->trxuser_id);
+    }
+    
+    my $expectedhash = md5_hex($self->my_userid .
+                               $self->my_amount .
+                               $self->my_currency .
+                               $self->ret_authcode .
+                               $self->ret_booknr .
+                               $self->my_security_key);
+    if ($expectedhash eq $self->ret_param_checksum) {
+        return "OK"
+    }
+    else {
+        warn "$expectedhash isn't " . $self->ret_param_checksum . "\n";
+        return 0;
+    }
+}
+
+
 
 ### HERE WE CAN ADD SOME SHORTCUTS FOR THE SHOP, so we can extract the
 ### interesting parameters

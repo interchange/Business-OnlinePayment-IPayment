@@ -7,9 +7,10 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 19;
+plan tests => 24;
 
 use Business::OnlinePayment::IPayment;
+use Business::OnlinePayment::IPayment::Response;
 
 diag "Create the object and store the fixed values";
 
@@ -142,8 +143,40 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
 # diag Dumper($response->header('location'));
 test_success($response);
 
-print Dumper($secbopi->validate_result($response->header('location')));
+my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
+# we build this anew, as in the web it will be a fresh request, so we
+# don't do nothing about the previous one.
+
+$ipayres->set_credentials(
+                          my_amount   => $secbopi->trxAmount,
+                          my_currency => $secbopi->trxCurrency,
+                          my_userid   => $secbopi->trxuserId,
+                          my_security_key => $secbopi->app_security_key,
+                         );
+
+ok($ipayres->is_valid, "Payment looks ok");
+
+# while if we tamper fails
+$ipayres->my_amount(5000000);
+ok(!$ipayres->is_valid, "Tampered data not ok");
+
+# passing only the security key should work too
+my $location = URI->new($response->header('location'));
+my %params = $location->query_form;
+
+$ipayres = Business::OnlinePayment::IPayment::Response->new(%params);
+eval {$ipayres->is_valid };
+ok($@, "no secret key: $@");
+
+# with security key pass is ok.
+$ipayres = Business::OnlinePayment::IPayment::Response->new(%params);
+$ipayres->my_security_key("testtest");
+ok($ipayres->is_valid);
+$ipayres->my_security_key("testtestX");
+ok(!$ipayres->is_valid, "wrong secret key yields failure");
+
+diag "Please wait 2 minutes before running me again, or the tests will fail!";
 
 sub test_success {
     my $response = shift;
@@ -151,6 +184,6 @@ sub test_success {
     unlike($response->decoded_content, qr/ERROR/, "No error");
     like($response->decoded_content, qr/<a href="http:/, "Redirect");
     my $uri = URI->new($response->header('location'));
-    my %result = $uri->query_form;
-    print Dumper(\%result);
+    # my %result = $uri->query_form;
+    # print Dumper(\%result);
 }
