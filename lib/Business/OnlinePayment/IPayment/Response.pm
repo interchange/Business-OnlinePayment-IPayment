@@ -371,6 +371,26 @@ Return true if the servers return a checksum (for this you have to
 build a session with C<trx_securityhash> for this to work, and you
 shoul use the app_security_key).
 
+CGI Name: C<ret_param_checksum>
+Data type: String
+
+The hash is the md5sum of the concatenation of C<trxuser_id>
+C<trx_amount>, C<trx_currency>, C<ret_authcode>, C<ret_booknr> and
+I<transaction security key>.
+
+If one of the fields is empty or not returned, use the empty string.
+
+
+The checksum is only in case of success of a transaction
+(ret_errorcode = 0 and redirect_ needed = 0) are available.
+
+  perl -e 'use Digest::MD5 qw/md5_hex/;
+      print md5_hex("99998" . 5000 . "EUR" . "" . "1-83400472" .  "testtest");'
+
+  # => 6bff5d51a44f048e887d1ab7677c4798 and it matches
+
+
+
 =cut
 
 sub is_valid {

@@ -7,6 +7,8 @@
 
 =head2  actions
 
+=over 4
+
 =item capture
 
 Withdrawing pre-authorized transactions
@@ -27,10 +29,13 @@ recorded in writing.
 
 * Ask: Wtf is ELV. For ELV refund_cap could be limited or impossible
 
+=back
 
 =head2 re-actions
 
 New payments/auth using the old transaction ID. Data stored for 3 month.
+
+=over 4
 
 =item re_preauth
 
@@ -44,12 +49,16 @@ Grefund_cap transaction type should not be used in an online store environment b
 
 Therefore, you must allow the use of this type of transaction first free cups of ipayment support. Please contact in this case, a rationale for the activation request
 
+=back
+
 =head2 phone auth
 
 It can happen that a deduction or credit for payments by credit card completed
 rejects is. You can recognize the error code if alternatively a telephone authorization
 possible. This happens, for example, if it is in the transaction is a very high posts. Call in this case to the approval of your payment service provider
 and perform an unauthorized payment by phone.
+
+=over 4
 
 =item voice_auth
 
@@ -64,6 +73,8 @@ immedi- booked.
 
 After unlocking. Unclear the difference between voice_auth and
 voice_grefund_cap
+
+=back
 
 =head2 Silent CGI mode
 
@@ -115,11 +126,13 @@ needed. 3-D Secure is in silent mode automatically available. A
 separate PCI certification is also not necessary, since the payment
 data solely on the server does ipayment be working. Example of
 application In our FAQ you will find an example script for integrating
-ipayment in "Si lent mode ": http://faq.ipayment.de> questions
+ipayment in "Silent mode ": http://faq.ipayment.de> questions
 regarding the individual connection of ipayment> How can I ipayment in
 "silent mode" use?
 
 =head3 Basic parameters
+
+=over 4
 
 Parameter to identify the ipayment accounts
 The following parameters are used to identify the ipayment accounts necessary.
@@ -163,10 +176,14 @@ Used by the SOAP request.
 
 Log into the ipayment configuration menu is not possible with this password.
 
+=back
+
 =head3 Parameters for the amount and currency
 
 
 With these parameters, you can specify the amount and the currency of the transaction.
+
+=over 4
 
 =item Currency Transaction
 CGI Name: C<trx_currency>
@@ -178,8 +195,7 @@ codes, see L<https://ipayment.de/> under B<Technik>. So says the doc,
 but I couldn't find the link.
 
 
-Note that the processing of payments in the on-
-given currency must be agreed with your payment provider.
+Note that the processing of payments in the currency must be agreed with your payment provider.
 
 =item Amount of the transaction
 CGI Name: C<trx_amount>
@@ -204,7 +220,11 @@ C<trx_amount_decimal> for the amount after the decimal (cents).
 
 If C<trx_amount> is set, the parameters here are ignored.
 
+=back
+
 =head3 Parameter to specify the desired payment
+
+=over 4
 
 =item Transaction type
 
@@ -247,9 +267,13 @@ For some types of transactions you need to perform an action on a
 single parameter of the transaction number of the original
 transaction. This number is transmitted with C<orig_trx_number>.
 
+=back
+
 =head3 Parameters for name and address of the cardholder
 
 With these parameters, you can transfer personal information of the cardholder.
+
+=over 4
 
 =item Name of Owner
 CGI Name: C<addr_name>
@@ -293,7 +317,11 @@ check.
 
 # here some parameters has been skipped for now
 
+=back
+
 =head3 Redirections
+
+=over 4
 
 =item Redirect url
 
@@ -342,121 +370,13 @@ This URL can be your customer in case of failure to return to your shop. This pa
 
 Better we set this.
 
+=back
+
 =head3 Silent mode
 
 CGI-Name: C<silent>
 Data Type: Boolean: B<use 1>
 
-
-=item A pre-generated session ID Session
-
-CGI Name: C<ipayment_session_id>
-Data type: String
-
-
-If a session ID is transmitted in the normal mode or silent mode, it must
-have been generated ID before and returned.
-
-B<I need to look into this>
-
-=head3 Payment details (CC & C.)
-
-=item Between each trasactions 2 minutes must pass, or it's
-considerated a duplicate.
-
-
-=head2 Preventing data tampering.
-
-The following parameters apply when the secret key of the application
-is set in the control panel.
-
-=item security hash
-
-CGI Name: C<trx_securityhash>
-Data type: string, maximum 32 characters
-
-Security hash of CGI command concatenating Id, amount, currency,
-password, Transaction Security Key (should be set in the configuration
-menu using ipayment). The hash is C<trxuser_id>, C<trx_amount>,
-C<trx_currency>, C<trxpassword> and the I<transaction security key>.
-
-  md5_hex($trxuser_id . $trx_amount . $trx_currency . $trxpassword . $sec_key); 
-
-  perl -e 'use Digest::MD5 qw/md5_hex/;
-                print  md5_hex("99998" . 5000 . "EUR" . 0 .  "testtest"), "\n";'
-  # => then in the form
-  <input type="hidden" name="trx_securityhash"
-         value="db4812171baef817dec0cd56c0f5c8cd">
-
-  # success:
-  'ret_transtime' => '07:56:51',
-  'ret_errorcode' => '0',
-  'redirect_needed' => '0',
-  'ret_transdate' => '13.03.13',
-  'addr_name' => 'Mario Grigi',
-  'trx_paymentmethod' => 'AmexCard',
-  'ret_authcode' => '',
-  'trx_currency' => 'EUR',
-  'ret_url_checksum' => 'c7d03875caca75717842336c3008b5ac',
-  'form_submit' => 'Process payment',
-  'ret_param_checksum' => '6bff5d51a44f048e887d1ab7677c4798',
-  'ret_ip' => '93.137.146.185',
-  'trx_typ' => 'auth',
-  'ret_trx_number' => '1-83400472',
-  'ret_status' => 'SUCCESS',
-  'trx_paymenttyp' => 'cc',
-  'trx_amount' => '5000',
-  'ret_booknr' => '1-83400472',
-  'trxuser_id' => '99998',
-  'trx_remoteip_country' => 'HR'
-
-So, tampering the data will result with the browser stuck at
-https://ipayment.de/merchant/99999/processor/2.0/ with this text:
-
-Account-ID: 99999 ERROR: The Transaction Security-Hash doesn't match or is empty. Manipulation? ("1d9db03e9d714a15b27b97506461b731")
-
-=item Param checksum in the success callback
-
-CGI Name: C<ret_param_checksum>
-Data type: String
-
-The hash is the md5sum of the concatenation of C<trxuser_id>
-C<trx_amount>, C<trx_currency>, C<ret_authcode>, C<ret_booknr> and
-I<transaction security key>.
-
-If one of the fields is empty or not returned, use the empty string.
-
-
-The checksum is only in case of success of a transaction
-(ret_errorcode = 0 and redirect_ needed = 0) are available.
-
- perl -e 'use Digest::MD5 qw/md5_hex/;
-      print md5_hex("99998" . 5000 . "EUR" . "" . "1-83400472" .  "testtest");'
-
- # => 6bff5d51a44f048e887d1ab7677c4798 and it matches
-
-
-=item Checksum of CGI setback URL
-
-CGI Name: C<ret_url_checksum>
-Data type: String
-
-For the formation of the hash in the URL will be a setback & and transaction security
-Attached to the application key. For this string, the MD5 checksum is generated.
-The calculated hash is ret_url_checksum as parameters to the URL setback behind all
-another parameter is appended to the end.
-
-To verify the checksum you must remove C<ret_url_checksum> the
-parameters of the full URL of the called script cut, the Transaction
-Security Key attach and then calculate the MD5 checksum. If the
-checksum is not the value parameter C<ret_url_checksum> matches, there is
-probably a manipulation of URL before.
-
-=head2 SOAP
-
-=head3 Endpoint
-
-L<https://ipayment.de/service/3.0/>
 
 
 =head2 See also

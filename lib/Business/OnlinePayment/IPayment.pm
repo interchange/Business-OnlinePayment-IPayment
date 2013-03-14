@@ -454,6 +454,22 @@ sub _init_soap {
 If we have a security key, we trigger the hash generation, so we can
 double check the result.
 
+CGI Name: C<trx_securityhash>
+Data type: string, maximum 32 characters
+
+Security hash of CGI command concatenating Id, amount, currency,
+password, Transaction Security Key (should be set in the configuration
+menu using ipayment). The hash is C<trxuser_id>, C<trx_amount>,
+C<trx_currency>, C<trxpassword> and the I<transaction security key>.
+
+  md5_hex($trxuser_id . $trx_amount . $trx_currency . $trxpassword . $sec_key); 
+
+  perl -e 'use Digest::MD5 qw/md5_hex/;
+                print  md5_hex("99998" . 5000 . "EUR" . 0 .  "testtest"), "\n";'
+  # => then in the form
+  <input type="hidden" name="trx_securityhash"
+         value="db4812171baef817dec0cd56c0f5c8cd">
+
 =cut
 
 sub trx_securityhash {
