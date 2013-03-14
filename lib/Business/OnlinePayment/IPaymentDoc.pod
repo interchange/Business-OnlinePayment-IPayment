@@ -31,7 +31,7 @@ cancel the payment after its execution (even several) On the credit
 card statement of the buyer both the withdrawal, and the material is
 recorded in writing. 
 
-* Ask: Wtf is ELV. For ELV refund_cap could be limited or impossible
+For ELV (direct debit)  refund_cap could be limited or impossible
 
 =back
 
