@@ -8,7 +8,7 @@ use Moo;
 
 Business::OnlinePayment::IPayment - Helper class for Ipayment responses
 
-=head1 SYNOPSYS
+=head1 SYNOPSIS
 
   # where %params are the GET parameters
   $ipayres = Business::OnlinePayment::IPayment::Response->new(%params);
@@ -19,7 +19,7 @@ Business::OnlinePayment::IPayment - Helper class for Ipayment responses
                           my_userid   => "99999",
                           my_security_key => "testtest",
                          );
-  ok($ipayres->is_valid, "Payment looks ok");
+  ok($ipayres->is_success && $ipayres->is_valid, "Payment looks ok");
 
 =head1 DESCRIPTION
 
@@ -364,6 +364,14 @@ sub is_error {
     }
 }
 
+
+=head3 is_valid
+
+Return true if the servers return a checksum (for this you have to
+build a session with C<trx_securityhash> for this to work, and you
+shoul use the app_security_key).
+
+=cut
 
 sub is_valid {
     my $self = shift;
