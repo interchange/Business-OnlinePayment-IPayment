@@ -20,6 +20,7 @@ WriteMakefile(
     PREREQ_PM => {
                   'Moo' => 1,
                   'XML::Compile::SOAP' => 0,
+                  URI => 1,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Business-OnlinePayment-IPayment-*' },

@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 14;
+plan tests => 19;
 
 use Business::OnlinePayment::IPayment;
 
@@ -140,8 +140,10 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_expdate_year => "2014" });
 
 # diag Dumper($response->header('location'));
-
 test_success($response);
+
+print Dumper($secbopi->validate_result($response->header('location')));
+
 
 sub test_success {
     my $response = shift;

@@ -2,14 +2,16 @@ package Business::OnlinePayment::IPayment;
 
 use 5.010001;
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 
 # preparation
 use XML::Compile::WSDL11;
 use XML::Compile::SOAP11;
 use XML::Compile::Transport::SOAPHTTP;
+use Business::OnlinePayment::IPayment::Response;
 use Scalar::Util qw/looks_like_number/;
 use Digest::MD5 qw/md5_hex/;
+use URI;
 
 use Moo;
 
@@ -192,6 +194,8 @@ has hidden_trigger => (is => 'ro');
 
 Return the hashref with the defined urls
 
+=back
+
 =cut
 
 sub processorUrls {
@@ -209,7 +213,6 @@ sub processorUrls {
 }
 
 
-=back
 
 =head3 TransactionData
 
@@ -253,6 +256,16 @@ has trxAmount => (is => 'rw',
                   });
 
 
+=item shopper_id
+
+This parameter allows you to specify a unique ID for an order process.
+Under this Shopper ID is saved to the associated transaction in order
+ipayment system. The Shopper ID must be unique only if the extended
+examination of the IDs Avoidance of double use transactions.
+
+=cut
+
+has shopper_id => (is => 'rw');
 
 =item transactionData
 
@@ -267,6 +280,9 @@ sub transactionData {
                trxAmount => $self->trxAmount,
                trxCurrency => $self->trxCurrency,
               );
+    if ($self->shopper_id) {
+        $trx{shopperId} = $self->shopper_id;
+    }
     return \%trx;
 }
 
@@ -309,6 +325,8 @@ The payment type, choosen from the types below. It defaults to C<cc>
   elv
   pp
 
+=back
+
 =cut
 
 has paymentType => (is => 'rw',
@@ -326,7 +344,7 @@ has paymentType => (is => 'rw',
                     });
 
 
-=back
+
 
 =head3 error
 
@@ -451,7 +469,75 @@ sub trx_securityhash {
 
 =head2 UTILITIES
 
-=head2 ipayment_cgi_location
+=head3 validate_result($rawuri) or validate_result(%params)
+
+To be sure the transaction happened as aspected, we have to check this back.
+Expected hash:
+
+Success:
+
+  'ret_transtime' => '08:42:05',       'ret_transtime' => '08:42:03',
+  'ret_errorcode' => '0',              'ret_errorcode' => '0',
+  'redirect_needed' => '0',            'redirect_needed' => '0',
+  'ret_transdate' => '14.03.13',       'ret_transdate' => '14.03.13',
+  'addr_name' => 'Mario Pegula',       'addr_name' => 'Mario Rossi',
+  'trx_paymentmethod' => 'VisaCard',   'trx_paymentmethod' => 'AmexCard',
+  'ret_authcode' => '',                'ret_authcode' => '',
+  'trx_currency' => 'EUR',             'trx_currency' => 'EUR',
+  'ret_url_checksum' => 'md5sum',
+  'ret_param_checksum' => 'md5sum',
+  'ret_ip' => '88.198.37.147',         'ret_ip' => '88.198.37.147',
+  'trx_typ' => 'preauth',              'trx_typ' => 'preauth',
+  'ret_trx_number' => '1-83443831',    'ret_trx_number' => '1-83443830',
+  'ret_status' => 'SUCCESS',           'ret_status' => 'SUCCESS',
+  'trx_paymenttyp' => 'cc',            'trx_paymenttyp' => 'cc',
+  'trx_paymentdata_country' => 'US',
+  'trx_amount' => '5000',              'trx_amount' => '1000',
+  'ret_booknr' => '1-83443831',        'ret_booknr' => '1-83443830',
+  'trxuser_id' => '99998',             'trxuser_id' => '99999',
+  'trx_remoteip_country' => 'DE'       'trx_remoteip_country' => 'DE'
+
+Returns a Business::OnlinePayment::IPayment::Response object, so you
+can call ->is_success on it.
+
+=cut
+
+sub validate_result {
+    my ($self, @args) = @_;
+    my %details;
+    my $resobj;
+    
+    # only one argument: we have an URI
+    if (@args == 1) {
+        my $uri = URI->new(shift(@args));
+        $resobj = Business::OnlinePayment::IPayment::Response
+          ->new($uri->query_form);
+    }
+    elsif ((@args % 2) == 0) {
+        $resobj = Business::OnlinePayment::IPayment::Response
+          ->new(@args);
+    }
+    return $resobj;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=head3 ipayment_cgi_location
 
 Returns the correct url where the customer posts the CC data, which is simply:
 L<https://ipayment.de/merchant/<Account-ID>/processor/2.0/>
@@ -463,7 +549,6 @@ sub ipayment_cgi_location {
     return 'https://ipayment.de/merchant/' . $self->accountId
       . '/processor/2.0/';
 }
-
 
 
 =head1 AUTHOR
