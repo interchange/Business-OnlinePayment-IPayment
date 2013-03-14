@@ -1,9 +1,13 @@
 =head2 transaction types
 
+=over 4
+
 =item preauth : reserve the amount
 =item auth : actual payment
 =item base_check : plausibility check
 =item check_save: do a preauth and then cancel (some banks don't support this)
+
+=back
 
 =head2  actions
 
@@ -132,10 +136,10 @@ regarding the individual connection of ipayment> How can I ipayment in
 
 =head3 Basic parameters
 
-=over 4
-
 Parameter to identify the ipayment accounts
 The following parameters are used to identify the ipayment accounts necessary.
+
+=over 4
 
 =item Account ID (included in the url)
 
