@@ -143,7 +143,7 @@ has addr_zip => (is => 'ro');
 
 =item addr_country
 
-ISO country code (3 chars)
+ISO country code (2 chars, not 3 as the documentation says)
 
 =back
 
@@ -405,9 +405,7 @@ As a shortcut, you can set the above attribute using this method
 
 sub set_credentials {
     my ($self, %args) = @_;
-    if (defined $args{my_amount} and
-        defined $args{my_userid} and
-        defined $args{my_currency} and
+    if (defined $args{my_userid} and
         defined $args{my_security_key}) {
         
         $self->my_amount($args{my_amount});
