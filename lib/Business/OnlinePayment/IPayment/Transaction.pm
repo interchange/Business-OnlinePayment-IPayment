@@ -29,6 +29,14 @@ Currency in which the payment is processed. There are all known
 three-letter ISO Currency codes allowed. A list of known currency
 codes, see L<https://ipayment.de/> under B<Technik>. E.g C<EUR>
 
+CGI Name: C<trx_currency>
+
+Note that the processing of payments in the currency must be agreed
+with your payment provider.
+
+
+Default to C<EUR> in this implementation.
+
 =cut
 
 has trxCurrency => (is => 'ro',
@@ -44,6 +52,8 @@ has trxCurrency => (is => 'ro',
 Amount to be debited, in the B<smallest currency unit>, for Example
 cents. B<Decimal points> or other characters except numbers are 
 B<not allowed>.
+
+CGI Name: C<trx_amount>
 
 =cut
 
@@ -68,6 +78,31 @@ examination of the IDs Avoidance of double use transactions.
 
 has shopper_id => (is => 'ro');
 
+=item invoiceText
+
+=cut
+
+has invoiceText => (is => 'ro');
+
+=item trxUserComment
+
+=cut
+
+has trxUserComment => (is => 'ro');
+
+=item recurringData
+
+=cut
+
+has recurringData => (is => 'ro');
+
+=item installmentData
+
+=cut
+
+has installmentData => (is => 'ro');
+
+
 =item transactionData
 
 Return the hashref with the transaction data details
@@ -75,14 +110,25 @@ Return the hashref with the transaction data details
 =cut
 
 
+
 sub transactionData {
     my $self = shift;
     my %trx = (
-               trxAmount => $self->trxAmount,
-               trxCurrency => $self->trxCurrency,
-              );
-    if ($self->shopper_id) {
-        $trx{shopperId} = $self->shopper_id;
+               trxAmount       => $self->trxAmount,
+               trxCurrency     => $self->trxCurrency,
+               shopperId       => $self->shopper_id,
+               );
+    if ($self->invoiceText) {
+        $trx{invoiceText} = $self->invoiceText;
+    }
+    if ($self->trxUserComment) {
+        $trx{trxUserComment} = $self->trxUserComment;
+    }
+    if ($self->recurringData) {
+        $trx{recurringData} = $self->recurringData;
+    }
+    if ($self->installmentData) {
+        $trx{installmentData} = $self->installmentData;
     }
     return \%trx;
 }
@@ -98,6 +144,7 @@ The transaction type, choosen from the types below. It defaults to C<auth>
   check_save
   grefund_cap
 
+CGI Name: C<trx_typ>
 
 =cut
 
@@ -125,6 +172,8 @@ The payment type, choosen from the types below. It defaults to C<cc>
   cc
   elv
   pp
+
+CGI Name: C<trx_paymenttyp>
 
 =back
 

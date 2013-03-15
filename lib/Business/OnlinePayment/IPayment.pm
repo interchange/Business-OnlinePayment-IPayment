@@ -82,20 +82,26 @@ has wsdl_file => (is => 'ro');
 
 =item accountId
 
-The Ipayment account id (the one put into the CGI url)
+The Ipayment account id (the one put into the CGI url). Integer.
 
 =cut
 
-has accountId => (is => 'ro');
+has accountId => (is => 'ro',
+                  isa => sub {
+                      die "Not an integer" unless $_[0] =~ m/^[0-9]+$/s
+                  });
 
 =item trxuserId
 
 The application ID, you can in your ipayment configuration menu read
-using  Anwendung > Details 
+using  Anwendung > Details. Integer
 
 =cut
 
-has trxuserId => (is => 'ro');
+has trxuserId => (is => 'ro',
+                  isa => sub {
+                      die "Not an integer" unless $_[0] =~ m/^[0-9]+$/s
+                  });
 
 =item trxpassword
 
@@ -165,6 +171,11 @@ sub accountData {
 
 Mandatory (for us) field, where to redirect the user in case of success.
 
+CGI-Name: C<redirect_url>
+
+I<In silent mode, the parameters are always passed by GET to the
+script.> (no need to C<redirect_action>)
+
 =cut
 
 has success_url => (is => 'ro',
@@ -175,6 +186,11 @@ has success_url => (is => 'ro',
 =item failure_url
 
 Mandatory (for us) field, where to redirect the user in case of failure.
+
+CGI Name: C<silent_error_url>
+Data type: String
+
+This URL is more in case of failure of ipayment system with the error information and parameters B<using the GET method>. This URL must point to a CGI script that can handle the paramaters.
 
 =cut
 
@@ -276,12 +292,15 @@ sub session_id {
     }
 
     # do the request passing the accountData
-    my ($res, $trace) =  $self->soap->(accountData => $self->accountData,
-                                       transactionType => $self->trx_obj->transactionType,
-                                       paymentType => $self->trx_obj->paymentType,
-                                       processorUrls => $self->processorUrls,
-                                       transactionData => $self->trx_obj->transactionData,
-                                      ); # fixed
+    my ($res, $trace) =
+      $self->soap->( # first the fixed values
+                    accountData => $self->accountData,
+                    processorUrls => $self->processorUrls,
+                    # then the transaction
+                    transactionType => $self->trx_obj->transactionType,
+                    paymentType => $self->trx_obj->paymentType,
+                    transactionData => $self->trx_obj->transactionData,
+                   );
     $self->_set_debug($trace);
     # check if we got something valuable
     unless ($res and

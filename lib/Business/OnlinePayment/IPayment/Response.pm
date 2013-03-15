@@ -107,6 +107,92 @@ Name of the buyer. This parameter is required for all payments.
 
 has addr_name               => (is => 'ro');
 
+
+=item addr_email
+
+Data type: string, B<maximum 80 characters>
+
+E-mail address of the buyer. If this field is filled in, the e-mail
+address is checked for plausibility.
+
+=cut
+
+has addr_email => (is => 'ro');
+
+=item addr_street
+
+=cut
+
+has addr_street => (is => 'ro');
+
+=item addr_city
+
+City
+
+=cut
+
+has addr_city => (is => 'ro');
+
+=item addr_zip
+
+ZIP code
+
+=cut
+
+has addr_zip => (is => 'ro');
+
+=item addr_country
+
+ISO country code (3 chars)
+
+=back
+
+=cut
+
+has addr_zip => (is => 'ro');
+
+=head3 Optional contact details
+
+=over 4
+
+=item addr_street2
+
+Second street.
+
+=cut
+
+has addr_street2 => (is => 'ro');
+
+=item addr_state
+
+(USA only), two chars.
+
+=cut 
+
+has addr_state => (is => 'ro');
+
+=item addr_telefon
+
+Telephone, max 30 chars
+
+=cut
+
+has addr_telefon => (is => 'ro');
+
+=item addr_telefax
+
+Telefax, max 30 chars
+
+=back
+
+=cut
+
+has addr_telefax => (is => 'ro');
+
+=head3 Payement details
+
+=over 4
+
 =item trx_paymentmethod
 
 In this parameter the name of the medium used, payment will be
