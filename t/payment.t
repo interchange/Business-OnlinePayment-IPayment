@@ -67,7 +67,7 @@ my $bopi = Business::OnlinePayment::IPayment->new(%accdata, %urls,
 
 is_deeply($bopi->accountData, { %accdata } , "Stored values ok");
 
-is scalar(keys %{$bopi->processorUrls}), 2, "Found two urls";
+is scalar(keys %{$bopi->processorUrls}), 3, "Found 3 urls";
 is $bopi->processorUrls->{redirectUrl}, $urls{success_url}, "success ok";
 is $bopi->processorUrls->{silentErrorUrl}, $urls{failure_url}, "success ok";
 

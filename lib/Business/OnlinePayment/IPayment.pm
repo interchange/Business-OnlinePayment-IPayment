@@ -201,16 +201,11 @@ Return the hashref with the defined urls
 
 sub processorUrls {
     my $self = shift;
-    my %urls = (
-                redirectUrl => $self->success_url,
-               );
-    if ($self->failure_url) {
-        $urls{silentErrorUrl} = $self->failure_url,
-    }
-    if ($self->hidden_trigger_url) {
-        $urls{hiddenTriggerUrl} = $self->hidden_trigger_url
-    }
-    return \%urls
+    return {
+            redirectUrl => $self->success_url,
+            silentErrorUrl => $self->failure_url,
+            hiddenTriggerUrl => $self->hidden_trigger_url
+           };
 }
 
 
