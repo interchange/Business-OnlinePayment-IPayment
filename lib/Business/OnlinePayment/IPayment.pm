@@ -182,13 +182,13 @@ has failure_url => (is => 'ro',
                    );
 
 
-=item hidden_trigger
+=item hidden_trigger_url
 
 Optional url for the hidden trigger.
 
 =cut
 
-has hidden_trigger => (is => 'ro');
+has hidden_trigger_url => (is => 'ro');
 
 
 =item processorUrls
@@ -207,8 +207,8 @@ sub processorUrls {
     if ($self->failure_url) {
         $urls{silentErrorUrl} = $self->failure_url,
     }
-    if ($self->hidden_trigger) {
-        $urls{hiddenTriggerUrl} = $self->hidden_trigger
+    if ($self->hidden_trigger_url) {
+        $urls{hiddenTriggerUrl} = $self->hidden_trigger_url
     }
     return \%urls
 }
