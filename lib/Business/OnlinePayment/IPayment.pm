@@ -356,6 +356,14 @@ quite large and deeply nested, but it's there just in case we need it.
 
 has error => (is => 'rwp');
 
+=head3 debug
+
+Every call to session id stores the trace into this attribute.
+
+=cut
+
+has debug => (is => 'rwp');
+
 
 =head2 METHODS
 
@@ -384,7 +392,7 @@ sub session_id {
                                        processorUrls => $self->processorUrls,
                                        transactionData => $self->transactionData,
                                       ); # fixed
-
+    $self->_set_debug($trace);
     # check if we got something valuable
     unless ($res and
             ref($res) eq 'HASH' and 
