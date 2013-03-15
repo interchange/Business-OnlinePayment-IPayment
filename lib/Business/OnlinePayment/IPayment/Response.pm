@@ -397,6 +397,34 @@ The cart->id of the transaction
 
 has shopper_id => (is => 'rw');
 
+
+=head3 invoice_text
+
+In payment processing with the below payment provider you can use a
+Specify text that is sent to the payment provider. This text if the
+debiting more precisely describe. Depending on the payment providers
+and credit cards out bender site This text is printed on the card
+account of the customer and / or dealer. If this parameter is not set,
+ipayment automatically uses the company name merchant that you
+specified in the configuration menu ipayment under General Data
+
+This can be sent into the options as C<options->{invoiceText}>
+
+=cut
+
+has invoice_text => (is => 'ro');
+
+=head3 trx_user_comment
+
+Comment that is stored in the transaction in ipayment system. this
+comment is not sent to the bank or payment processor.
+
+This can be sent into the options as C<options->{trxUserComment}>
+
+=cut
+
+has trx_user_comment => (is => 'ro');
+
 =head3 set_credentials(%hash)
 
 As a shortcut, you can set the above attribute using this method

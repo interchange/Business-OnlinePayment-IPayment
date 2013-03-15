@@ -4,11 +4,30 @@ package Business::OnlinePayment::IPayment::Transaction;
 use 5.010001;
 use strict;
 use warnings;
+use utf8;
 use Scalar::Util qw/looks_like_number/;
 
 =head1 NAME
 
 Business::OnlinePayment::IPayment::Transaction - Simple object to hold the transaction request
+
+=head1 SYNOPSIS
+
+  $IPayment_object->transaction(transactionType => 'auth',
+                                trxAmount       => 5000, # 50 €
+                                trxCurrency     => 'EUR',
+                                invoiceText     => "Thanks!",
+                                trxUserComment  => "Hello!",
+                                paymentType     => "cc",
+                                shopper_id      => int(rand(5000)),
+                                options => {
+                                  fromIp => '99.99.99.99',
+                                  checkDoubleTrx => 1,
+                                  errorLang      => 'en',
+                                  # and possibly others, see doc wsdl
+                                 });
+                      
+
 
 =cut
 
@@ -195,5 +214,17 @@ has paymentType => (is => 'ro',
 
 
 
+=head3 options
+
+Additional options for the SOAP request, as a hashref. These options are
+quite advanced, so we don't do any additional checking ourselves,
+delegating them to the SOAP compiler.
+
+=cut
+
+
+has options => (is => 'ro',
+                isa => sub { die "options should be a hash\n"
+                               unless (ref$_[0]) eq 'HASH' });
 
 1;

@@ -91,7 +91,7 @@ ok($@, "Can't set payment type to bogus value $@");
 # ok, no point in testing each of those, we trust Moo to do its job
 
 $bopi->transaction(transactionType => 'preauth',
-                   trxAmount => 1000);
+                   trxAmount => int(rand(1000)) * 100);
 
 
 my $session_id = $bopi->session_id;
@@ -128,7 +128,7 @@ my %account = (
 my $secbopi = Business::OnlinePayment::IPayment->new(%account);
 
 $secbopi->transaction(transactionType => 'preauth',
-                      trxAmount       => 5000,
+                      trxAmount       => int(rand(5000)) * 100,
                       shopper_id      => 1234);
 
 $response = $ua->post($secbopi->ipayment_cgi_location,

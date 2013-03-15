@@ -291,17 +291,24 @@ sub session_id {
         $self->_init_soap();
     }
 
+    my %args = (
+                # fixed values
+                accountData => $self->accountData,
+                processorUrls => $self->processorUrls,
+                # then the transaction
+                transactionType => $self->trx_obj->transactionType,
+                paymentType => $self->trx_obj->paymentType,
+                transactionData => $self->trx_obj->transactionData,
+               );
+    # and the options, if needed
+    if ($self->trx_obj->options) {
+        $args{options} = $self->trx_obj->options;
+    }
+
     # do the request passing the accountData
-    my ($res, $trace) =
-      $self->soap->( # first the fixed values
-                    accountData => $self->accountData,
-                    processorUrls => $self->processorUrls,
-                    # then the transaction
-                    transactionType => $self->trx_obj->transactionType,
-                    paymentType => $self->trx_obj->paymentType,
-                    transactionData => $self->trx_obj->transactionData,
-                   );
+    my ($res, $trace) = $self->soap->(%args);
     $self->_set_debug($trace);
+
     # check if we got something valuable
     unless ($res and
             ref($res) eq 'HASH' and 
