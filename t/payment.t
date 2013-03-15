@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 29;
+plan tests => 30;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -129,6 +129,7 @@ my %account = (
 my $secbopi = Business::OnlinePayment::IPayment->new(%account);
 $secbopi->transactionType('preauth');
 $secbopi->trxAmount(5000); # 50 euros
+$secbopi->shopper_id(1234);
 
 $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -174,6 +175,7 @@ ok($@, "no secret key: $@");
 $ipayres = Business::OnlinePayment::IPayment::Response->new(%params);
 $ipayres->my_security_key("testtest");
 ok($ipayres->is_success && $ipayres->is_valid, "Payment looks ok");
+ok $ipayres->shopper_id, "Shopper id retrieve: " . $ipayres->shopper_id;
 ok($ipayres->url_is_valid($response->header('location')),
    "Url looks untampered");
 ok(!$ipayres->validation_errors, "No errors");

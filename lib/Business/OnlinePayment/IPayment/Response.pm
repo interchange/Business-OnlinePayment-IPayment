@@ -303,6 +303,13 @@ The security key
 
 has my_security_key => (is => 'rw');
 
+=head3 shopper_id
+
+The cart->id of the transaction
+
+=cut
+
+has shopper_id => (is => 'rw');
 
 =head3 set_credentials(%hash)
 
