@@ -389,14 +389,27 @@ The checksum is only in case of success of a transaction
 
   # => 6bff5d51a44f048e887d1ab7677c4798 and it matches
 
+=head3 validation_errors
 
+With this accessor you are able to lookup the validation errors found
 
 =cut
 
+has validation_errors => (is => 'rwp');
+
+sub _add_valid_error {
+    my $self = shift;
+    my $error = shift;
+    my $olderr = $self->validation_errors || "";
+    $self->_set_validation_errors($olderr . " " . $error);
+}
+
 sub is_valid {
     my $self = shift;
+    # clear the error stack
+    $self->_set_validation_errors("");
     unless ($self->ret_param_checksum) {
-        warn "No checksum provided!\n";
+        $self->_set_validation_errors("No checksum provided!");
         return 0;
     }
 
@@ -405,15 +418,15 @@ sub is_valid {
     
     
     unless ($self->my_amount) {
-        warn "Using the data passed by the server\n";
+        $self->_add_valid_error("Using the data passed by the server!");
         $self->my_amount($self->trx_amount);
     }
     unless ($self->my_currency) {
-        warn "Using the currency passed by the server\n";
+        $self->_add_valid_error("Using the currency passed by the server!");
         $self->my_currency($self->trx_currency);
     }
     unless ($self->my_userid) {
-        warn "Using the userid passed by the server\n";
+        $self->_add_valid_error("Using the userid passed by the server!");
         $self->my_userid($self->trxuser_id);
     }
     
@@ -427,7 +440,7 @@ sub is_valid {
         return "OK"
     }
     else {
-        warn "$expectedhash isn't " . $self->ret_param_checksum . "\n";
+        $self->_add_valid_error("Expected hash $expectedhash isn't " . $self->ret_param_checksum);
         return 0;
     }
 }
@@ -467,9 +480,11 @@ Manipulation der URL vor.
 
 sub url_is_valid {
     my ($self, $url) = @_;
-    warn "Missing url for url validation"
+    # clear the error stack;
+    $self->_set_validation_errors("");
+    $self->_set_validation_errors("Missing url for url validation")
       unless $url;
-    warn "Missing secret key for url validation"
+    $self->_add_valid_error("Missing secret key for url validation")
       unless $self->my_security_key;
     unless ($url and $self->my_security_key) {
         return 0
@@ -483,12 +498,16 @@ sub url_is_valid {
         # it looks like the trailing & should be left in place
         $url =~ s/ret_url_checksum=([A-Za-z0-9]+)$//
     } else {
-        warn "checksum not found\n";
+        $self->_add_valid_error("checksum not found\n");
         return 0
     }
-    
     my $ourchecksum = md5_hex($url . $self->my_security_key);
-    return $ourchecksum eq $checksum;
+    if ($ourchecksum eq $checksum) {
+        return "OK";
+    } else {
+        $self->_add_valid_error("Url checksums don't match");
+        return 0;
+    }
 }
 
 

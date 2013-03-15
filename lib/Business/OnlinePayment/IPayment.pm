@@ -41,7 +41,8 @@ our $VERSION = '0.01';
                  adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
                  app_security_key => 'testtest',
                  wsdl_file => $wsdl_file,
-                 %urls
+                 success_url => 'http://example.net/checkout-payment',
+                 failure_url => 'http://example.net/checkout-success'
                 );
   
   

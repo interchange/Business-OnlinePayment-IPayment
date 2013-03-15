@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 25;
+plan tests => 29;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -156,10 +156,11 @@ $ipayres->set_credentials(
                          );
 
 ok($ipayres->is_valid, "Payment looks ok");
-
+ok(!$ipayres->validation_errors, "No errors found");
 # while if we tamper fails
 $ipayres->my_amount(5000000);
 ok(!$ipayres->is_valid, "Tampered data not ok");
+ok($ipayres->validation_errors, "Errors: " . $ipayres->validation_errors);
 
 # passing only the security key should work too
 my $location = URI->new($response->header('location'));
@@ -175,15 +176,17 @@ $ipayres->my_security_key("testtest");
 ok($ipayres->is_success && $ipayres->is_valid, "Payment looks ok");
 ok($ipayres->url_is_valid($response->header('location')),
    "Url looks untampered");
+ok(!$ipayres->validation_errors, "No errors");
 
 $ipayres->my_security_key("testtestX");
 ok(!$ipayres->is_valid, "wrong secret key yields failure");
-
+ok($ipayres->validation_errors, "Errors: " . $ipayres->validation_errors);
 
 
 
 
 diag "Please wait 2 minutes before running me again, or the tests will fail!";
+diag "Test run on " . localtime;
 
 sub test_success {
     my $r = shift;
