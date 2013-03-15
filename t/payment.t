@@ -77,22 +77,21 @@ ok($@, "Can't change the account id $@");
 eval { $bopi->trxuserId("999") };
 ok($@, "Can't change the trxuserId $@");
 
-eval { $bopi->paymentType("test") };
+eval { $bopi->trx_obj->paymentType("test") };
 ok($@, "Can't set payment type to bogus value $@");
 
-eval { $bopi->transactionType("preauth") };
-ok(!$@, "Can change the transaction to allowed value");
+eval { $bopi->trx_obj->transactionType("preauth") };
+ok($@, "Can't change the transaction to allowed value after its creation");
 
-eval { $bopi->transactionType("test") };
+eval { $bopi->trx_obj->transactionType("test") };
 ok($@, "Can't set payment type to bogus value $@");
 
 
 
 # ok, no point in testing each of those, we trust Moo to do its job
 
-$bopi->transactionType('preauth');
-$bopi->trxAmount(1000); # 10 euros
-
+$bopi->transaction(transactionType => 'preauth',
+                   trxAmount => 1000);
 
 
 my $session_id = $bopi->session_id;
@@ -127,9 +126,10 @@ my %account = (
 
 
 my $secbopi = Business::OnlinePayment::IPayment->new(%account);
-$secbopi->transactionType('preauth');
-$secbopi->trxAmount(5000); # 50 euros
-$secbopi->shopper_id(1234);
+
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => 5000,
+                      shopper_id      => 1234);
 
 $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -150,8 +150,8 @@ my $ipayres = $secbopi->get_response_obj($response->header('location'));
 # don't do nothing about the previous one.
 
 $ipayres->set_credentials(
-                          my_amount   => $secbopi->trxAmount,
-                          my_currency => $secbopi->trxCurrency,
+                          my_amount   => $secbopi->trx_obj->trxAmount,
+                          my_currency => $secbopi->trx_obj->trxCurrency,
                           my_userid   => $secbopi->trxuserId,
                           my_security_key => $secbopi->app_security_key,
                          );
