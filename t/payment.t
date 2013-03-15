@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 30;
+plan tests => 31;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -140,6 +140,8 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
                         cc_expdate_year => "2014" });
+
+ok($secbopi->debug->request->content, "We can inspect the SOAP request");
 
 # diag Dumper($response->header('location'));
 test_success($response);

@@ -50,7 +50,8 @@ our $VERSION = '0.02';
   my $secbopi = Business::OnlinePayment::IPayment->new(%account);
   $secbopi->transaction(transactionType => 'preauth',
                         trxAmount => 5000);
-  
+  # see Business::OnlinePayment::IPayment::Transaction for available options
+
   $response = $ua->post('https://ipayment.de/merchant/99999/processor/2.0/',
                         { ipayment_session_id => $secbopi->session_id,
                           addr_name => "Mario Pegula",
@@ -232,7 +233,7 @@ has debug => (is => 'rwp');
 
 =head3 trx_obj
 
-Attribute to hold a Business::OnlinePayment::IPayment::Transaction object
+Attribute to hold a L<Business::OnlinePayment::IPayment::Transaction> object
 
 =cut
 
@@ -240,7 +241,9 @@ has trx_obj => (is => 'rwp');
 
 =head3 transaction
 
-Constructor for the object above;
+Constructor for the object above. All the argument are passed verbatim
+to the L<Business::OnlinePayment::IPayment::Transaction> constructor,
+then the object is stored.
 
 =cut
 
