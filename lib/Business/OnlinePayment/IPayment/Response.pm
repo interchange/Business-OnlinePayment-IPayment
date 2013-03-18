@@ -565,11 +565,26 @@ sub is_valid {
     }
 }
 
+
+=head3 raw_url 
+
+Accessor for the raw, undecoded url (used for the checksum).
+
+=cut
+
+
+has raw_url => (is => 'rw');
+
+
+
 =head3 url_is_valid($raw_undecoded_url)
 
 You may ask for the validation of the url, which comes with a checksum
 attached. For this you should have already provided the security key
 and you should pass the raw undecoded url as argument.
+
+Alternatively, if you set the attribute C<raw_url> in the constructor
+or with the accessor, you can call url_is_valid without arguments.
 
 Return false on failure, true on success
 
@@ -600,6 +615,9 @@ Manipulation der URL vor.
 
 sub url_is_valid {
     my ($self, $url) = @_;
+    unless ($url) {
+        $url = $self->raw_url;
+    }
     # clear the error stack;
     $self->_set_validation_errors("");
     $self->_set_validation_errors("Missing url for url validation")

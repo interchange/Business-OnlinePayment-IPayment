@@ -459,8 +459,10 @@ sub get_response_obj {
     my %details;
     # only one argument: we have an URI
     if (@args == 1) {
-        my $uri = URI->new(shift(@args));
+        my $raw_url = shift(@args);
+        my $uri = URI->new($raw_url);
         %details = $uri->query_form;
+        $details{raw_url} = $raw_url;
     }
     elsif ((@args % 2) == 0) {
         %details = @args;

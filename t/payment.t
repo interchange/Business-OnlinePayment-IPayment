@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 31;
+plan tests => 32;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -148,10 +148,6 @@ test_success($response);
 
 my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
-print Dumper($ipayres);
-
-
-
 # we build this anew, as in the web it will be a fresh request, so we
 # don't do nothing about the previous one.
 
@@ -162,6 +158,7 @@ $ipayres->set_credentials(
                           # my_security_key => $secbopi->app_security_key,
                          );
 
+ok($ipayres->url_is_valid, "Url is ok");
 ok($ipayres->is_valid, "Payment looks ok");
 ok(!$ipayres->validation_errors, "No errors found");
 # while if we tamper fails
