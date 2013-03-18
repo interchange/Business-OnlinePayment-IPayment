@@ -28,7 +28,7 @@ Version 0.03
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 =head1 SYNOPSIS
@@ -449,28 +449,33 @@ This is just a shortcuts for
 
   Business::OnlinePayment::IPayment::Response->new(%params);
 
+with C<my_security_key> and C<my_userid> inherited from the fixed
+values of this class.
+
 =cut
 
 sub get_response_obj {
     my ($self, @args) = @_;
     my %details;
-    my $resobj;
-    
     # only one argument: we have an URI
     if (@args == 1) {
         my $uri = URI->new(shift(@args));
-        $resobj = Business::OnlinePayment::IPayment::Response
-          ->new($uri->query_form);
+        %details = $uri->query_form;
     }
     elsif ((@args % 2) == 0) {
-        $resobj = Business::OnlinePayment::IPayment::Response
-          ->new(@args);
+        %details = @args;
     }
     else {
         die "Arguments to validate the response not provided "
           . "(paramaters or raw url";
     }
-    return $resobj;
+    unless (exists $details{my_security_key}) {
+        $details{my_security_key} = $self->app_security_key;
+    }
+    unless (exists $details{my_userid}) {
+        $details{my_userid}       = $self->trxuserId;
+    }
+    return Business::OnlinePayment::IPayment::Response->new(%details);
 }
 
 =head3 ipayment_cgi_location

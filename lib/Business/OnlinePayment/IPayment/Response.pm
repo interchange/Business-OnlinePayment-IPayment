@@ -433,16 +433,17 @@ As a shortcut, you can set the above attribute using this method
 
 sub set_credentials {
     my ($self, %args) = @_;
-    if (defined $args{my_userid} and
-        defined $args{my_security_key}) {
-        
-        $self->my_amount($args{my_amount});
-        $self->my_currency($args{my_currency});
+    if (defined $args{my_userid}) {
         $self->my_userid($args{my_userid});
+    }
+    if (defined $args{my_security_key}) {
         $self->my_security_key($args{my_security_key});
     }
-    else {
-        die "Wrong arguments. See the doc for my_credentials\n"
+    if (defined $args{my_amount}) {
+        $self->my_amount($args{my_amount})
+    }
+    if (defined $args{my_currency}) {
+        $self->my_currency($args{my_currency});
     }
 }
 

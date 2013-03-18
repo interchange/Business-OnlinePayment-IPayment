@@ -148,14 +148,18 @@ test_success($response);
 
 my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
+print Dumper($ipayres);
+
+
+
 # we build this anew, as in the web it will be a fresh request, so we
 # don't do nothing about the previous one.
 
 $ipayres->set_credentials(
                           my_amount   => $secbopi->trx_obj->trxAmount,
                           my_currency => $secbopi->trx_obj->trxCurrency,
-                          my_userid   => $secbopi->trxuserId,
-                          my_security_key => $secbopi->app_security_key,
+                          # my_userid   => $secbopi->trxuserId,
+                          # my_security_key => $secbopi->app_security_key,
                          );
 
 ok($ipayres->is_valid, "Payment looks ok");
@@ -189,8 +193,8 @@ ok($ipayres->validation_errors, "Errors: " . $ipayres->validation_errors);
 
 
 
-diag "Please wait 2 minutes before running me again, or the tests will fail!";
-diag "Test run on " . localtime;
+# diag "Please wait 2 minutes before running me again, or the tests will fail!";
+# diag "Test run on " . localtime;
 
 sub test_success {
     my $r = shift;
