@@ -13,8 +13,10 @@ use Business::OnlinePayment::IPayment::Transaction;
 use Digest::MD5 qw/md5_hex/;
 use URI;
 
+use Business::OnlinePayment 3;
 use Moo;
 
+use base 'Business::OnlinePayment';
 
 # use Log::Report mode => 'DEBUG';
 

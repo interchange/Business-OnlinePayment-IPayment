@@ -21,6 +21,7 @@ WriteMakefile(
                   'Moo' => 1,
                   'XML::Compile::SOAP' => 0,
                   URI => 1,
+                  'Business::OnlinePayment' => 3,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Business-OnlinePayment-IPayment-*' },
