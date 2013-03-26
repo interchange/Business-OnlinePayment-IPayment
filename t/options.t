@@ -12,8 +12,8 @@ use Business::OnlinePayment::IPayment::Response;
 plan tests => 7;
 
 my %account = (
-               accountId => 99999,
-               trxuserId => 99998,
+               accountid => 99999,
+               trxuserid => 99998,
                trxpassword => 0,
                adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
                app_security_key => 'testtest',

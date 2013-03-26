@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 32;
+plan tests => 30;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -28,8 +28,8 @@ eval { $faultybopi =
 ok($@, "Error: $@");
 
 my %accdata = (
-               accountId => 99999,
-               trxuserId => 99999,
+               accountid => 99999,
+               trxuserid => 99999,
                trxpassword => 0,
                adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
               );
@@ -46,7 +46,7 @@ $faulty{wsdl_file} = File::Spec->catfile("t", "ipayment.wsdl");
 # please note that we want to die here, as without the credentials is
 # not going to work, and should be provided when the object is
 # created.
-foreach my $k (qw/accountId trxuserId trxpassword/) {
+foreach my $k (qw/accountid trxuserid trxpassword/) {
     eval { $faultybopi =
              Business::OnlinePayment::IPayment->new(%faulty, %urls);
            $faultybopi->session_id;
@@ -64,18 +64,14 @@ my $wsdl_file = File::Spec->catfile("t", "ipayment.wsdl");
 my $bopi = Business::OnlinePayment::IPayment->new(%accdata, %urls,
                                                   wsdl_file => $wsdl_file);
 
+$accdata{accountId} = delete $accdata{accountid};
+$accdata{trxuserId} = delete $accdata{trxuserid};
 
 is_deeply($bopi->accountData, { %accdata } , "Stored values ok");
 
 is scalar(keys %{$bopi->processorUrls}), 3, "Found 3 urls";
 is $bopi->processorUrls->{redirectUrl}, $urls{success_url}, "success ok";
 is $bopi->processorUrls->{silentErrorUrl}, $urls{failure_url}, "success ok";
-
-eval { $bopi->accountId("999") };
-ok($@, "Can't change the account id $@");
-
-eval { $bopi->trxuserId("999") };
-ok($@, "Can't change the trxuserId $@");
 
 eval { $bopi->trx_obj->paymentType("test") };
 ok($@, "Can't set payment type to bogus value $@");
@@ -115,8 +111,8 @@ diag "Testing secured app";
 
 
 my %account = (
-               accountId => 99999,
-               trxuserId => 99998,
+               accountid => 99999,
+               trxuserid => 99998,
                trxpassword => 0,
                adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
                app_security_key => 'testtest',
@@ -154,7 +150,7 @@ my $ipayres = $secbopi->get_response_obj($response->header('location'));
 $ipayres->set_credentials(
                           my_amount   => $secbopi->trx_obj->trxAmount,
                           my_currency => $secbopi->trx_obj->trxCurrency,
-                          # my_userid   => $secbopi->trxuserId,
+                          # my_userid   => $secbopi->trxuserid,
                           # my_security_key => $secbopi->app_security_key,
                          );
 
