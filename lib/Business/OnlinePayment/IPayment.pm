@@ -37,8 +37,8 @@ our $VERSION = '0.04';
 
   use Business::OnlinePayment::IPayment;
   my %account = (
-                 accountId => 99999,
-                 trxuserId => 99998,
+                 accountid => 99999,
+                 trxuserid => 99998,
                  trxpassword => 0,
                  adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
                  app_security_key => 'testtest',
@@ -80,27 +80,27 @@ The name of th WSDL file. It should be a local file.
 
 =cut
 
-has wsdl_file => (is => 'ro');
+has wsdl_file => (is => 'rw');
 
-=item accountId
+=item accountid
 
 The Ipayment account id (the one put into the CGI url). Integer.
 
 =cut
 
-has accountId => (is => 'ro',
+has accountid => (is => 'rw',
                   isa => sub {
                       die "Not an integer" unless $_[0] =~ m/^[0-9]+$/s
                   });
 
-=item trxuserId
+=item trxuserid
 
 The application ID, you can in your ipayment configuration menu read
 using  Anwendung > Details. Integer
 
 =cut
 
-has trxuserId => (is => 'ro',
+has trxuserid => (is => 'rw',
                   isa => sub {
                       die "Not an integer" unless $_[0] =~ m/^[0-9]+$/s
                   });
@@ -116,7 +116,7 @@ B<This is not the account password!>
 
 =cut
 
-has trxpassword => (is => 'ro');
+has trxpassword => (is => 'rw');
 
 =item adminactionpassword
 
@@ -126,7 +126,7 @@ B<This is not the account password!>
 
 =cut 
 
-has adminactionpassword => (is => 'ro');
+has adminactionpassword => (is => 'rw');
 
 
 =item app_security_key
@@ -138,7 +138,7 @@ B<Without this, we are opened to tampering>
 
 =cut
 
-has app_security_key => (is => 'ro');
+has app_security_key => (is => 'rw');
 
 
 =item accountData
@@ -147,8 +147,8 @@ Accessor to retrieve the hash with the account data details. The
 output will look like this:
 
  accountData => {
-                 accountId => 99999,
-                 trxuserId => 99999,
+                 accountid => 99999,
+                 trxuserid => 99999,
                  trxpassword =>0,
                  adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe'}
 
@@ -158,8 +158,8 @@ output will look like this:
 sub accountData {
     my $self = shift;
     my %account_data = (  # mandatory
-                        accountId => $self->accountId,
-                        trxuserId => $self->trxuserId,
+                        accountId => $self->accountid,
+                        trxuserId => $self->trxuserid,
                         trxpassword => $self->trxpassword
                         );
     my $adminpass = $self->adminactionpassword;
@@ -180,7 +180,7 @@ script.> (no need to C<redirect_action>)
 
 =cut
 
-has success_url => (is => 'ro',
+has success_url => (is => 'rw',
                     isa => sub { die "Missing success url" unless $_[0] },
                     default => sub { die "Missing success url" },
                    );
@@ -196,7 +196,7 @@ This URL is more in case of failure of ipayment system with the error informatio
 
 =cut
 
-has failure_url => (is => 'ro',
+has failure_url => (is => 'rw',
                     isa => sub { die "Missing failure url" unless $_[0] },
                     default => sub { die "Missing success url" },
                    );
@@ -208,7 +208,7 @@ Optional url for the hidden trigger.
 
 =cut
 
-has hidden_trigger_url => (is => 'ro');
+has hidden_trigger_url => (is => 'rw');
 
 
 =item processorUrls
@@ -405,7 +405,7 @@ sub trx_securityhash {
         warn "hash requested, but app_security_key wasn't provided!\n";
         return;
     }
-    return md5_hex($self->trxuserId .
+    return md5_hex($self->trxuserid .
                    $self->trx_obj->trxAmount .
                    $self->trx_obj->trxCurrency .
                    $self->trxpassword .
@@ -477,7 +477,7 @@ sub get_response_obj {
         $details{my_security_key} = $self->app_security_key;
     }
     unless (exists $details{my_userid}) {
-        $details{my_userid}       = $self->trxuserId;
+        $details{my_userid}       = $self->trxuserid;
     }
     return Business::OnlinePayment::IPayment::Response->new(%details);
 }
@@ -491,7 +491,7 @@ L<https://ipayment.de/merchant/<Account-ID>/processor/2.0/>
 
 sub ipayment_cgi_location {
     my $self = shift;
-    return 'https://ipayment.de/merchant/' . $self->accountId
+    return 'https://ipayment.de/merchant/' . $self->accountid
       . '/processor/2.0/';
 }
 
