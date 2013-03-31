@@ -5,6 +5,8 @@ use utf8;
 use Digest::MD5 qw/md5_hex/;
 use Moo;
 
+=encoding utf8
+
 =head1 NAME
 
 Business::OnlinePayment::IPayment - Helper class for Ipayment responses
