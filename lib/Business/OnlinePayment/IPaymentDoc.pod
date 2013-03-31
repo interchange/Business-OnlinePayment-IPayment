@@ -3,8 +3,11 @@
 =over 4
 
 =item preauth : reserve the amount
+
 =item auth : actual payment
+
 =item base_check : plausibility check
+
 =item check_save: do a preauth and then cancel (some banks don't support this)
 
 =back
