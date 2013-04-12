@@ -81,8 +81,8 @@ has trxAmount => (is => 'ro',
                   isa => sub {
                       die "Not a number" unless looks_like_number($_[0]);
                       my $num = $_[0];
-                      my $int = int($num);
-                      die unless $num eq $int # string-wise operation
+                      die "<$num> is not an integer\n"
+                        unless $num =~ m/^[1-9][0-9]*$/s;
                   });
 
 
