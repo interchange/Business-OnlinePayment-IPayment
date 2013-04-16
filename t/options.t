@@ -9,7 +9,7 @@ use URI;
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
 
-plan tests => 7;
+plan tests => 10;
 
 my %account = (
                accountid => 99999,
@@ -25,6 +25,11 @@ my %account = (
 diag "Testing the options\n";
 
 my $secbopi = Business::OnlinePayment::IPayment->new(%account);
+
+$secbopi->country("DE");
+is $secbopi->country, undef, "country undef";
+
+
 $secbopi->transaction(transactionType => 'auth',
                       trxAmount       => int(rand(5000)),
                       shopper_id      => int(rand(5000)),
@@ -70,3 +75,10 @@ is $params{trx_user_comment}, "Hello!", "Found user comment";
 
 print Dumper(\%params);
 
+$secbopi->country("DE");
+
+is $secbopi->country, "DE", "country ok";
+
+$secbopi->country("italy");
+
+is $secbopi->country, undef, "invalid country returns undef";

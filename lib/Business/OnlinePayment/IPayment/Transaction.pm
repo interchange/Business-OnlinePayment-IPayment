@@ -227,4 +227,20 @@ has options => (is => 'ro',
                 isa => sub { die "options should be a hash\n"
                                unless (ref$_[0]) eq 'HASH' });
 
+
+=head2 Additional transaction information
+
+=head3 addr_info
+
+Hashref to hold additional information, notably the information about
+the cardholder.
+
+=cut
+
+has addr_info => (is => 'ro',
+                  default => sub { return {} },
+                  isa => sub { die "options should be a hash\n"
+                                 unless (ref$_[0]) eq 'HASH' });
+
+
 1;

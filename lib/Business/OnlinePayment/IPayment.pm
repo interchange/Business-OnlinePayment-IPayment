@@ -496,6 +496,32 @@ sub ipayment_cgi_location {
 }
 
 
+=head2 Additional information
+
+=head3 country
+
+Country code of the cardholder of the current
+L<Business::OnlinePayment::IPayment::Transaction> object
+
+Being these information transaction specific, if a transaction has not
+been initiated, the method will not do anything nor will return
+anything.
+
+=cut
+
+sub country {
+    my $self = shift;
+    # 
+    return unless $self->trx_obj;
+    if (@_ == 1) {
+        $self->trx_obj->addr_info->{country} = shift;
+    }
+    my $country = uc($self->trx_obj->addr_info->{country});
+    return unless $country =~ m/^[A-Z]{2,3}$/s;
+    return $country
+}
+
+
 =head1 AUTHOR
 
 Marco Pessotto, C<< <melmothx at gmail.com> >>
