@@ -73,7 +73,7 @@ ok($res->trx_remoteip_country, "ip ok (alternate)");
 is($res->trx_paymentdata_country, "US", "country ok");
 is($res->trxPaymentDataCountry, "US", "country ok");
 is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
-is($ref($res->addressData), "HASH");
+is(ref($res->addressData), "HASH");
 
 $res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
 
