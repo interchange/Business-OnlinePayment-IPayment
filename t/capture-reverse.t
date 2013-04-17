@@ -79,6 +79,7 @@ is(ref($res->addressData), "HASH");
 ok($res->trx_timestamp, "timestamp ok: " . $res->trx_timestamp);
 ok($res->ret_transtime, "time ok: " . $res->ret_transtime);
 ok($res->ret_transdate, "date ok: " . $res->ret_transdate);
+is($res->ret_errorcode, 0, "No error");
 
 ok(defined $res->ret_authcode,
    "authcode is defined:" . $res->ret_authcode);
@@ -106,6 +107,8 @@ is($res->address_info, '', "Empty address on failure");
 ok(!$res->is_success, "More charging fails");
 print Dumper ($res);
 ok($res->is_error, "And we have an error");
+
+ok($res->ret_errorcode, "with code " . $res->ret_errorcode);
 
 ok($res->error_info =~ qr/Capture nicht m Not enough funds left \(\d+\) for this capture. 10031/, "Not funds left error ok");
 

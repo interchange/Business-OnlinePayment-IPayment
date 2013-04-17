@@ -278,6 +278,19 @@ sub ret_authcode {
     return $self->successDetails->{retAuthCode}
 }
 
+=item ret_errorcode
+
+The error code. 0 in case of success
+
+=cut
+
+sub ret_errorcode {
+    my $self = shift;
+    return 0 unless $self->errorDetails;
+    return $self->errorDetails->{retErrorcode};
+}
+
+
 =back
 
 =cut
