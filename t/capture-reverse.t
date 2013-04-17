@@ -64,8 +64,16 @@ print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_cu
 my $res = $secbopi->capture($ipayres->ret_trx_number, $amount - 200, "EUR");
 
 ok($res->is_success, "Charging the amount minus 2 euros works");
-
+is($res->status, "SUCCESS");
+is(ref($res->successDetails), "HASH");
+is($res->paymentMethod, "VisaCard", "Payment method ok");
+is($res->trx_paymentmethod, "VisaCard", "Payment method ok (alternate)");
+ok($res->trxRemoteIpCountry, "ip ok");
+ok($res->trx_remoteip_country, "ip ok (alternate)");
+is($res->trx_paymentdata_country, "US", "country ok");
+is($res->trxPaymentDataCountry, "US", "country ok");
 is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
+is($ref($res->addressData), "HASH");
 
 $res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
 
