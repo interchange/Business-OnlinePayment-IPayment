@@ -85,8 +85,16 @@ diag Dumper($res->successDetails);
 is($res->address_info, '', "Empty address on failure");
 
 ok(!$res->is_success, "More charging fails");
-# print Dumper ($res);
+print Dumper ($res);
 ok($res->is_error, "And we have an error");
+
+ok($res->error_info =~ qr/Capture nicht m Not enough funds left \(\d+\) for this capture. 10031/, "Not funds left error ok");
+
+$res = $secbopi->capture("828939234", 500000, "EUR");
+
+ok($res->is_error, "Charging a random number with 50.000 fails");
+
+is($res->error_info, "FATAL: Die Initialisierung der Transaktion ist fehlgeschlagen. 1002", "Fatal error displayed correctly");
 
 done_testing;
 

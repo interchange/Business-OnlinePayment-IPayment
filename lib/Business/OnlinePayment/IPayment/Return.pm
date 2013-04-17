@@ -194,6 +194,35 @@ sub address_info {
     return join(" ", @details);
 }
 
+=item error_info
+
+Given that if you need to access the individual fields of the error,
+the method C<errorDetails> is available, you may want to use this for
+a stringified message, which basically combine all the 4 fields.
+
+=cut
+
+
+sub error_info {
+    my $self = shift;
+    return "" unless $self->is_error;
+    my $error_details = $self->errorDetails;
+    unless ($error_details) {
+        warn "An error without an error string?\n";
+        return ""
+    }
+    my @errors;
+    if ($error_details->{retFatalerror}) {
+        push @errors, "FATAL:";
+    }
+    foreach my $k (qw/retErrorMsg retAdditionalMsg retErrorcode/) {
+        push @errors, $error_details->{$k} if $error_details->{$k}
+    }
+    return join(" ", @errors);
+}
+
+
+
 =back
 
 =cut
