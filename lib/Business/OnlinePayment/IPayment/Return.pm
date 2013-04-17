@@ -252,6 +252,31 @@ sub trx_timestamp {
     return
 }
 
+=item ret_trx_number
+
+Transaction number, as returned by the IPayment server
+
+=cut
+
+sub ret_trx_number {
+    my $self = shift;
+    return "" unless $self->successDetails;
+    return $self->successDetails->{retTrxNumber}
+}
+
+
+=item ret_authcode
+
+Auth code, as returned by the IPayment server
+
+=cut
+
+sub ret_authcode {
+    my $self = shift;
+    return "" unless $self->successDetails;
+    return $self->successDetails->{retAuthCode}
+}
+
 =back
 
 =cut

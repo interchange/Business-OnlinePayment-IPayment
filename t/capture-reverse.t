@@ -78,6 +78,11 @@ ok($res->trx_timestamp, "timestamp ok: " . $res->trx_timestamp);
 ok($res->ret_transtime, "time ok: " . $res->ret_transtime);
 ok($res->ret_transdate, "date ok: " . $res->ret_transdate);
 
+ok(defined $res->ret_authcode,
+   "authcode is defined:" . $res->ret_authcode);
+
+ok($res->ret_trx_number,
+   "Trx number is returned: " . $res->ret_trx_number);
 
 $res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
 
