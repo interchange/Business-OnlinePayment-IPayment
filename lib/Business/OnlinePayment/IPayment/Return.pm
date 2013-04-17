@@ -221,6 +221,36 @@ sub error_info {
     return join(" ", @errors);
 }
 
+=item ret_transdate
+
+=item ret_transtime
+
+=item trx_timestamp
+
+Date of the transaction, time of the transaction, and the two combined.
+
+=cut
+
+sub ret_transdate {
+    my $self = shift;
+    return "" unless $self->successDetails;
+    return $self->successDetails->{retTransDate};
+}
+
+sub ret_transtime {
+    my $self = shift;
+    return "" unless $self->successDetails;
+    return $self->successDetails->{retTransTime};
+
+}
+
+sub trx_timestamp {
+    my $self = shift;
+    if ($self->ret_transdate or $self->ret_transtime) {
+        return $self->ret_transdate . " " . $self->ret_transtime;
+    }
+    return
+}
 
 =back
 

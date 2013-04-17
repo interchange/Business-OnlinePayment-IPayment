@@ -74,6 +74,10 @@ is($res->trx_paymentdata_country, "US", "country ok");
 is($res->trxPaymentDataCountry, "US", "country ok");
 is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
 is(ref($res->addressData), "HASH");
+ok($res->trx_timestamp, "timestamp ok: " . $res->trx_timestamp);
+ok($res->ret_transtime, "time ok: " . $res->ret_transtime);
+ok($res->ret_transdate, "date ok: " . $res->ret_transdate);
+
 
 $res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
 
@@ -103,6 +107,10 @@ $res = $secbopi->capture("828939234", 500000, "EUR");
 ok($res->is_error, "Charging a random number with 50.000 fails");
 
 is($res->error_info, "FATAL: Die Initialisierung der Transaktion ist fehlgeschlagen. 1002", "Fatal error displayed correctly");
+
+ok(!$res->trx_timestamp, "timestamp empty: " . $res->trx_timestamp);
+ok(!$res->ret_transtime, "time empty: " . $res->ret_transtime);
+ok(!$res->ret_transdate, "date empty: " . $res->ret_transdate);
 
 done_testing;
 
