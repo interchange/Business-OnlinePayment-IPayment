@@ -37,7 +37,12 @@ $secbopi->transaction(transactionType => 'preauth',
 my $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
                         addr_name => "Mario Pegula",
-                        addr_country => "DE",
+                        addr_street => "via del piffero 10",
+                        addr_city => "Trieste",
+                        addr_zip => "34100",
+                        addr_country => "IT",
+                        addr_telefon => "041-311234",
+                        addr_email => 'melmothx@gmail.com',
                         silent => 1,
                         cc_number => "4111111111111111",
                         cc_checkcode => "",
@@ -60,12 +65,24 @@ my $res = $secbopi->capture($ipayres->ret_trx_number, $amount - 200, "EUR");
 
 ok($res->is_success, "Charging the amount minus 2 euros works");
 
+is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
+
 $res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
+
+is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
 
 ok($res->is_success, "Charging the remaining 2 euros works");
 
-$res = $secbopi->capture($ipayres->ret_trx_number, 50000 , "EUR");
+diag Dumper($res->successDetails);
+
+sleep 1;
+
+$res = $secbopi->capture($ipayres->ret_trx_number, 500000 , "EUR");
 # print Dumper($secbopi->debug);
+
+diag Dumper($res->successDetails);
+
+is($res->address_info, '', "Empty address on failure");
 
 ok(!$res->is_success, "More charging fails");
 # print Dumper ($res);

@@ -171,6 +171,29 @@ sub is_error {
     }
 }
 
+=item address info
+
+The various AddressData fields combined in a single string. It could
+return just an empty string.
+
+=cut
+
+
+sub address_info {
+    my $self = shift;
+    my $data = $self->addressData;
+    return "" unless $data;
+    my @details;
+    foreach my $k (qw/addrName addrStreet addrStreet2 addrZip addrCity
+                      addrState addrCountry addrEmail addrTelefon 
+                      addrTelefax/) {
+        if (my $f = $data->{$k}) {
+            push @details, $f;
+        }
+    }
+    return join(" ", @details);
+}
+
 =back
 
 =cut
