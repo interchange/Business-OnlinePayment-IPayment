@@ -27,7 +27,7 @@ Business::OnlinePayment::IPayment::Return - Helper class for Ipayment SOAP ipaym
       $return->trx_paymentdata_country, "\n"
   }
   elsif($return->is_error) {
-    print $return->status, $return->ret_errormsg, $return->ret_errorcode 
+    print $return->status, $return->error_info
   }
   
 =cut
@@ -220,7 +220,6 @@ sub error_info {
     }
     return join(" ", @errors);
 }
-
 
 
 =back
