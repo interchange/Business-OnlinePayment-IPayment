@@ -10,6 +10,7 @@ use XML::Compile::SOAP11;
 use XML::Compile::Transport::SOAPHTTP;
 use Business::OnlinePayment::IPayment::Response;
 use Business::OnlinePayment::IPayment::Transaction;
+use Business::OnlinePayment::IPayment::Return;
 use Digest::MD5 qw/md5_hex/;
 use URI;
 
@@ -324,23 +325,71 @@ sub session_id {
     # please note that we don't store the sessionId. It's a fire and forget.
 }
 
+=item capture($ret_trx_number, $amount, $currency)
 
+Charge an amount previously preauth'ed. C<$amount> and C<$currency>
+are optional and may be used to charge partial amounts. C<$amount> and
+C<$currency> follow the same rules of C<trxAmount> and C<trxCurrency>
+of L<Business::OnlinePayment::IPayment::Transaction> (no decimal,
+usually multiply by 100).
+
+=cut
+
+sub capture {
+    my ($self, $number, $amount, $currency) = @_;
+    # init the soap, if not already
+
+    unless ($self->soap_capture) {
+        $self->_init_soap();
+    }
+    my %args = (
+                accountData => $self->accountData,
+                origTrxNumber => $number,
+                );
+    if ($amount) {
+        die "Wrong amount $amount!\n" unless ($amount =~ m/^[1-9][0-9]*$/s);
+        unless ($currency) {
+            $currency = 'EUR'
+        }
+        unless ($currency =~ m/^[A-Z]{3}$/s) {
+            die "Wrong currency name!\n";
+        }
+        $args{transactionData} = {
+                                  trxAmount => $amount,
+                                  trxCurrency => $currency,
+                                 };
+    }
+    my ($res, $trace) = $self->soap_capture->(%args);
+    $self->_set_debug($trace);
+    if ($res and ref($res) eq 'HASH' and
+        exists $res->{captureResponse}->{ipaymentReturn}) {
+        return Business::OnlinePayment::IPayment::Return
+          ->new($res->{captureResponse}->{ipaymentReturn});
+    }
+    else {
+        $self->_set_error($trace);
+        return undef;
+    }
+}
 
 =item soap
 
-The SOAP object (used internally)
+=item soap_capture
+
+The SOAP objects (used internally)
 
 =cut
 
 has soap => (is => 'rwp');
-
+has soap_capture => (is => 'rwp');
 
 sub _init_soap {
     my $self = shift;
     my $wsdl = XML::Compile::WSDL11->new($self->wsdl_file);
-    # compile the object and store it in soap
     my $client = $wsdl->compileClient('createSession');
     $self->_set_soap($client);
+    my $capture = $wsdl->compileClient("capture");
+    $self->_set_soap_capture($capture);
 }
 
 =back

@@ -9,7 +9,7 @@ use Moo;
 
 =head1 NAME
 
-Business::OnlinePayment::IPayment - Helper class for Ipayment responses
+Business::OnlinePayment::IPayment::Response - Helper class for Ipayment responses
 
 =head1 SYNOPSIS
 
