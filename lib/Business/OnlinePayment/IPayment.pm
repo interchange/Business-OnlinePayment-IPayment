@@ -289,11 +289,6 @@ sub session_id {
     # clean eventually stale data
     $self->_set_error(undef);
 
-    # init the soap, if not already
-    unless ($self->soap) {
-        $self->_init_soap();
-    }
-
     my %args = (
                 # fixed values
                 accountData => $self->accountData,
@@ -339,9 +334,6 @@ sub capture {
     my ($self, $number, $amount, $currency) = @_;
     # init the soap, if not already
 
-    unless ($self->soap_capture) {
-        $self->_init_soap();
-    }
     my %args = (
                 accountData => $self->accountData,
                 origTrxNumber => $number,
@@ -374,22 +366,39 @@ sub capture {
 
 =item soap
 
+SOAP object for session_id
+
 =item soap_capture
 
-The SOAP objects (used internally)
+The SOAP object (used internally) for capture
 
 =cut
 
-has soap => (is => 'rwp');
-has soap_capture => (is => 'rwp');
+has _soap_createSession => (is => 'rw');
+has _soap_capture => (is => 'rw');
 
-sub _init_soap {
-    my $self = shift;
+sub soap {
+    return shift->_get_soap_object('createSession');
+}
+
+sub soap_capture {
+    return shift->_get_soap_object('capture');
+}
+
+sub _get_soap_object {
+    my ($self, $call) = @_;
+    unless ($call and ($call eq 'capture' or
+                       $call eq 'createSession')) {
+        die "Missing or wrong argument\n"
+    }
+    my $accessor = "_soap_" . $call;
+    my $obj = $self->$accessor;
+    return $obj if $obj;
     my $wsdl = XML::Compile::WSDL11->new($self->wsdl_file);
-    my $client = $wsdl->compileClient('createSession');
-    $self->_set_soap($client);
-    my $capture = $wsdl->compileClient("capture");
-    $self->_set_soap_capture($capture);
+    my $client = $wsdl->compileClient($call);
+    # set the object
+    $self->$accessor($client);
+    return $self->$accessor;
 }
 
 =back

@@ -171,7 +171,7 @@ sub is_error {
     }
 }
 
-=item address info
+=item address_info
 
 The various AddressData fields combined in a single string. It could
 return just an empty string.
