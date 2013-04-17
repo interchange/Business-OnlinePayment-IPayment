@@ -248,8 +248,9 @@ sub trx_timestamp {
     my $self = shift;
     if ($self->ret_transdate or $self->ret_transtime) {
         return $self->ret_transdate . " " . $self->ret_transtime;
+    } else {
+        return ""
     }
-    return
 }
 
 =item ret_trx_number
