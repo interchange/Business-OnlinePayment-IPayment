@@ -151,7 +151,7 @@ ISO country code (2 chars, not 3 as the documentation says)
 
 =cut
 
-has addr_zip => (is => 'ro');
+has addr_country => (is => 'ro');
 
 =head3 Optional contact details
 
@@ -648,6 +648,27 @@ sub url_is_valid {
         $self->_add_valid_error("Url checksums don't match");
         return 0;
     }
+}
+
+=head3 address_info
+
+Shortcut that combines the cardholder details, separated by a whitespace
+
+=cut
+
+sub address_info {
+    my $self = shift;
+    my @details;
+    foreach my $method (qw/addr_name addr_street addr_street2
+                           addr_zip addr_city
+                           addr_state addr_country addr_email
+                           addr_telefon
+                           addr_telefax/) {
+        if (my $det = $self->$method) {
+            push @details, $det
+        }
+    }
+    return join(" ", @details);
 }
 
 

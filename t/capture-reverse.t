@@ -58,6 +58,8 @@ my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
+is($ipayres->address_info, 'Mario Pegula via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234',
+   "Address OK: " . $ipayres->address_info);
 
 print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
 
