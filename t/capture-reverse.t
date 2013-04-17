@@ -28,10 +28,10 @@ my %account = (
 
 my $secbopi = Business::OnlinePayment::IPayment->new(%account);
 
-my $amount = int(rand(5000)) * 100;
+my $amount = int(rand(5000)) * 100 + 2;
 
 $secbopi->transaction(transactionType => 'preauth',
-                      trxAmount       => $amount,
+                      trxAmount       => "$amount",
                       shopper_id      => 1234);
 
 my $response = $ua->post($secbopi->ipayment_cgi_location,
