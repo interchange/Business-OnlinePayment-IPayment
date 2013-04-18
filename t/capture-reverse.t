@@ -10,9 +10,14 @@ use URI;
 
 
 use Business::OnlinePayment::IPayment;
+use Business::OnlinePayment::IPayment::Return;
+use Business::OnlinePayment::IPayment::Response;
 
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
+
+plan tests => 59;
+
 
 
 my %account = (
@@ -77,8 +82,8 @@ is($res->trxPaymentDataCountry, "US", "country ok");
 is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
 is(ref($res->addressData), "HASH");
 ok($res->trx_timestamp, "timestamp ok: " . $res->trx_timestamp);
-ok($res->ret_transtime, "time ok: " . $res->ret_transtime);
-ok($res->ret_transdate, "date ok: " . $res->ret_transdate);
+ok($res->ret_transtime =~ m/\d\d:\d\d:\d\d/, "time ok: " . $res->ret_transtime);
+ok($res->ret_transdate =~ m/\d\d\.\d\d.\d\d/, "date ok: " . $res->ret_transdate);
 is($res->ret_errorcode, 0, "No error");
 
 ok(defined $res->ret_authcode,
@@ -122,7 +127,19 @@ ok(!$res->trx_timestamp, "timestamp empty: " . $res->trx_timestamp);
 ok(!$res->ret_transtime, "time empty: " . $res->ret_transtime);
 ok(!$res->ret_transdate, "date empty: " . $res->ret_transdate);
 
-done_testing;
+my $empty = Business::OnlinePayment::IPayment::Return->new(successDetails => {});
+foreach my $method (qw/status ret_status trx_remoteip_country trxRemoteIpCountry trx_paymentdata_country trxPaymentDataCountry address_info error_info ret_transdate  ret_transtime trx_timestamp ret_trx_number ret_authcode ret_errorcode/) {
+    is($empty->$method, "", "Return $method returns the empty string");
+}
+ok(!$empty->is_success, "Empty is not a success");
+ok($empty->is_error, "But is an error");
+
+$empty = Business::OnlinePayment::IPayment::Response->new();
+foreach my $method (qw/ret_status trx_remoteip_country trx_paymentdata_country address_info ret_transdate  ret_transtime ret_trx_number ret_authcode ret_errorcode/) {
+    is($empty->$method, "", "Return $method returns the empty string");
+}
+ok(!$empty->is_success, "Empty is not a success");
+ok(!$empty->is_error, "But is neither an error");
 
 
 

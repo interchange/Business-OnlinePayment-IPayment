@@ -61,11 +61,19 @@ has errorDetails => (is => 'ro');
 
 =item status
 
+=item ret_status
+
 Status string (ERROR or SUCCESS)
 
 =cut
 
-has status => (is => 'ro');
+has status => (is => 'ro',
+               default => sub { return "" });
+
+sub ret_status {
+    return shift->status;
+}
+
 
 =item successDetails
 
@@ -82,6 +90,7 @@ Hashref with the success details
 
 has successDetails => (is => 'ro');
 
+
 =item trx_paymentmethod
 
 =item paymentMethod
@@ -92,7 +101,8 @@ MasterCard) or ELV.
 
 =cut
 
-has paymentMethod => (is => 'ro');
+has paymentMethod => (is => 'ro',
+                      default => sub { return "" });
 
 sub trx_paymentmethod {
     return shift->paymentMethod;
@@ -106,7 +116,8 @@ Iso code of the IP which does the transaction.
 
 =cut
 
-has trxRemoteIpCountry => (is => 'ro');
+has trxRemoteIpCountry => (is => 'ro',
+                           default => sub { return "" });
 
 sub trx_remoteip_country {
     return shift->trxRemoteIpCountry;
@@ -124,7 +135,8 @@ payments the bank country.
 
 =cut
 
-has trxPaymentDataCountry => (is => 'ro');
+has trxPaymentDataCountry => (is => 'ro',
+                              default => sub { return "" });
 
 
 sub trx_paymentdata_country {
@@ -233,15 +245,16 @@ Date of the transaction, time of the transaction, and the two combined.
 
 sub ret_transdate {
     my $self = shift;
-    return "" unless $self->successDetails;
+    return "" unless ($self->successDetails and
+                      defined $self->successDetails->{retTransDate});
     return $self->successDetails->{retTransDate};
 }
 
 sub ret_transtime {
     my $self = shift;
-    return "" unless $self->successDetails;
+    return "" unless ($self->successDetails and
+                      defined $self->successDetails->{retTransTime});
     return $self->successDetails->{retTransTime};
-
 }
 
 sub trx_timestamp {
@@ -249,7 +262,7 @@ sub trx_timestamp {
     if ($self->ret_transdate or $self->ret_transtime) {
         return $self->ret_transdate . " " . $self->ret_transtime;
     } else {
-        return ""
+        return "";
     }
 }
 
@@ -261,21 +274,23 @@ Transaction number, as returned by the IPayment server
 
 sub ret_trx_number {
     my $self = shift;
-    return "" unless $self->successDetails;
-    return $self->successDetails->{retTrxNumber}
+    return "" unless ($self->successDetails and
+                      defined($self->successDetails->{retTrxNumber}));
+    return $self->successDetails->{retTrxNumber};
 }
 
 
 =item ret_authcode
 
 Auth code, as returned by the IPayment server
-
+ 
 =cut
 
 sub ret_authcode {
     my $self = shift;
-    return "" unless $self->successDetails;
-    return $self->successDetails->{retAuthCode}
+    return "" unless ($self->successDetails and
+                      defined($self->successDetails->{retAuthCode}));
+    return $self->successDetails->{retAuthCode};
 }
 
 =item ret_errorcode
@@ -286,7 +301,13 @@ The error code. 0 in case of success
 
 sub ret_errorcode {
     my $self = shift;
-    return 0 unless $self->errorDetails;
+    unless ($self->errorDetails) {
+        if (lc($self->status) eq 'success') {
+            return 0;
+        } else {
+            return "";
+        }
+    }
     return $self->errorDetails->{retErrorcode};
 }
 

@@ -36,7 +36,8 @@ Time of transaction.
 
 =cut
 
-has ret_transtime           => (is => 'ro');
+has ret_transtime           => (is => 'ro',
+                                default => sub { return "" });
 
 =item ret_transdate
 
@@ -44,7 +45,8 @@ Date of the transaction.
 
 =cut 
 
-has ret_transdate           => (is => 'ro');
+has ret_transdate           => (is => 'ro',
+                                default => sub { return "" });
 
 =item ret_errorcode
 
@@ -55,7 +57,8 @@ be running. The return value is meaningful only after a second call.
 
 =cut
 
-has ret_errorcode           => (is => 'ro');
+has ret_errorcode           => (is => 'ro',
+                                default => sub { return "" });
 
 =item redirect_needed
 
@@ -72,7 +75,8 @@ interface.
 
 =cut
 
-has ret_errormsg            => (is => 'ro');
+has ret_errormsg            => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_additionalmsg
@@ -81,7 +85,8 @@ Additional Error message, sometimes in English, sometimes inexistent.
 
 =cut
 
-has ret_additionalmsg => (is => 'ro');
+has ret_additionalmsg => (is => 'ro',
+                          default => sub { return "" });
 
 =item ret_fatalerror
 
@@ -95,10 +100,12 @@ this case, a specific error message
 
 =cut
 
-has ret_fatalerror          => (is => 'ro');
+has ret_fatalerror          => (is => 'ro',
+                                default => sub { return "" });
 
 
-has redirect_needed         => (is => 'ro');
+has redirect_needed         => (is => 'ro',
+                                default => sub { return "" });
 
 =item addr_name
 
@@ -107,7 +114,8 @@ Name of the buyer. This parameter is required for all payments.
 
 =cut
 
-has addr_name               => (is => 'ro');
+has addr_name               => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item addr_email
@@ -119,13 +127,15 @@ address is checked for plausibility.
 
 =cut
 
-has addr_email => (is => 'ro');
+has addr_email => (is => 'ro',
+                   default => sub { return "" });
 
 =item addr_street
 
 =cut
 
-has addr_street => (is => 'ro');
+has addr_street => (is => 'ro',
+                    default => sub { return "" });
 
 =item addr_city
 
@@ -133,7 +143,8 @@ City
 
 =cut
 
-has addr_city => (is => 'ro');
+has addr_city => (is => 'ro',
+                  default => sub { return "" });
 
 =item addr_zip
 
@@ -141,7 +152,8 @@ ZIP code
 
 =cut
 
-has addr_zip => (is => 'ro');
+has addr_zip => (is => 'ro',
+                 default => sub { return "" });
 
 =item addr_country
 
@@ -151,7 +163,8 @@ ISO country code (2 chars, not 3 as the documentation says)
 
 =cut
 
-has addr_country => (is => 'ro');
+has addr_country => (is => 'ro',
+                     default => sub { return "" });
 
 =head3 Optional contact details
 
@@ -163,7 +176,8 @@ Second street.
 
 =cut
 
-has addr_street2 => (is => 'ro');
+has addr_street2 => (is => 'ro',
+                     default => sub { return "" });
 
 =item addr_state
 
@@ -171,7 +185,8 @@ has addr_street2 => (is => 'ro');
 
 =cut 
 
-has addr_state => (is => 'ro');
+has addr_state => (is => 'ro',
+                   default => sub { return "" });
 
 =item addr_telefon
 
@@ -179,7 +194,8 @@ Telephone, max 30 chars
 
 =cut
 
-has addr_telefon => (is => 'ro');
+has addr_telefon => (is => 'ro',
+                     default => sub { return "" });
 
 =item addr_telefax
 
@@ -189,7 +205,8 @@ Telefax, max 30 chars
 
 =cut
 
-has addr_telefax => (is => 'ro');
+has addr_telefax => (is => 'ro',
+                     default => sub { return "" });
 
 =head3 Payement details
 
@@ -203,7 +220,8 @@ MasterCard) or ELV.
 
 =cut
 
-has trx_paymentmethod       => (is => 'ro');
+has trx_paymentmethod       => (is => 'ro',
+                                default => sub { return "" });
 
 =item ret_authcode            
 
@@ -229,21 +247,24 @@ with your payment provider.
 
 =cut
 
-has trx_currency            => (is => 'ro');
+has trx_currency            => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_url_checksum        
 
 =cut
 
-has ret_url_checksum        => (is => 'ro');
+has ret_url_checksum        => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_param_checksum      
 
 =cut
 
-has ret_param_checksum      => (is => 'ro');
+has ret_param_checksum      => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_ip                  
@@ -252,7 +273,8 @@ IP of the client who did the transaction
 
 =cut
 
-has ret_ip                  => (is => 'ro');
+has ret_ip                  => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item trx_typ                 
@@ -261,7 +283,8 @@ See C<transactionType> in L<Business::OnlinePayment::IPayment>
 
 =cut
 
-has trx_typ                 => (is => 'ro');
+has trx_typ                 => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_trx_number          
@@ -274,7 +297,8 @@ charging or cancellations.
 
 =cut
 
-has ret_trx_number          => (is => 'ro');
+has ret_trx_number          => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_status              
@@ -290,7 +314,8 @@ secure, verification needed)
 
 =cut
 
-has ret_status              => (is => 'ro');
+has ret_status              => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item trx_paymenttyp          
@@ -299,7 +324,8 @@ Values: C<cc> (Credit card), C<elv> (ELV), C<pp> (Prepaid payment)
 
 =cut
 
-has trx_paymenttyp          => (is => 'ro');
+has trx_paymenttyp          => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item trx_paymentdata_country 
@@ -311,7 +337,8 @@ payments the bank country.
 
 =cut
 
-has trx_paymentdata_country => (is => 'ro');
+has trx_paymentdata_country => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item trx_amount              
@@ -324,7 +351,8 @@ For example, the amount of EUR 10.00 is given as 1000 cents.
 
 =cut
 
-has trx_amount              => (is => 'ro');
+has trx_amount              => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item ret_booknr              
@@ -343,7 +371,8 @@ See C<trxuserId> in Business::OnlinePayment::IPayment
 
 =cut
 
-has trxuser_id              => (is => 'ro');
+has trxuser_id              => (is => 'ro',
+                                default => sub { return "" });
 
 
 =item trx_remoteip_country
@@ -354,7 +383,8 @@ Iso code of the IP which does the transaction
 
 =cut
 
-has trx_remoteip_country    => (is => 'ro');
+has trx_remoteip_country    => (is => 'ro',
+                                default => sub { return "" });
 
 =head2 Setters needed for the hash checking
 
@@ -414,7 +444,8 @@ This can be sent into the options as C<options->{invoiceText}>
 
 =cut
 
-has invoice_text => (is => 'ro');
+has invoice_text => (is => 'ro',
+                     default => sub { return "" });
 
 =head3 trx_user_comment
 
@@ -425,7 +456,8 @@ This can be sent into the options as C<options->{trxUserComment}>
 
 =cut
 
-has trx_user_comment => (is => 'ro');
+has trx_user_comment => (is => 'ro',
+                         default => sub { return "" });
 
 =head3 set_credentials(%hash)
 
