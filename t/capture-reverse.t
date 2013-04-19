@@ -61,6 +61,8 @@ my $response = $ua->post($secbopi->ipayment_cgi_location,
 
 my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
+print Dumper($secbopi->debug);
+
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
 is($ipayres->address_info, 'Mario Pegula via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234',
@@ -72,6 +74,7 @@ my $res = $secbopi->capture($ipayres->ret_trx_number, $amount - 200, "EUR");
 
 ok($res->is_success, "Charging the amount minus 2 euros works");
 is($res->status, "SUCCESS");
+print Dumper($secbopi->debug);
 is(ref($res->successDetails), "HASH");
 is($res->paymentMethod, "VisaCard", "Payment method ok");
 is($res->trx_paymentmethod, "VisaCard", "Payment method ok (alternate)");
