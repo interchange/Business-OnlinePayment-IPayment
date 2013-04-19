@@ -208,7 +208,7 @@ Telefax, max 30 chars
 has addr_telefax => (is => 'ro',
                      default => sub { return "" });
 
-=head3 Payement details
+=head3 Payment details
 
 =over 4
 
