@@ -7,7 +7,7 @@ use File::Spec;
 use LWP::UserAgent;
 use URI;
 
-plan tests => 30;
+plan tests => 34;
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
@@ -100,6 +100,7 @@ my $response = $ua->post($bopi->ipayment_cgi_location,,
                            addr_name => "Mario Rossi",
                            silent => 1,
                            cc_number => "371449635398431",
+                           return_paymentdata_details => 1,
                            cc_checkcode => "",
                            cc_expdate_month => "02",
                            cc_expdate_year => "2014" });
@@ -132,6 +133,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         addr_name => "Mario Pegula",
                         silent => 1,
                         cc_number => "4111111111111111",
+                        return_paymentdata_details => 1,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
@@ -157,6 +159,11 @@ $ipayres->set_credentials(
 ok($ipayres->url_is_valid, "Url is ok");
 ok($ipayres->is_valid, "Payment looks ok");
 ok(!$ipayres->validation_errors, "No errors found");
+is($ipayres->paydata_cc_number, 'XXXXXXXXXXXX1111', "CC num returned masked");
+is($ipayres->paydata_cc_cardowner, "Mario Pegula", "CC owner returned");
+is($ipayres->paydata_cc_typ, "VisaCard", "Visa card returned");
+is($ipayres->paydata_cc_expdate, "0214", "Expiration returned");
+
 # while if we tamper fails
 $ipayres->my_amount(5000000);
 ok(!$ipayres->is_valid, "Tampered data not ok");

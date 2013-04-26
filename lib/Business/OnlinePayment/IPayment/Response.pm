@@ -386,6 +386,54 @@ Iso code of the IP which does the transaction
 has trx_remoteip_country    => (is => 'ro',
                                 default => sub { return "" });
 
+=head2 Payment data
+
+Optional data returned by the Ipayment server if the cgi parameter
+C<return_paymentdata_details> is set to 1 (no SOAP for this, you have
+to add an hidded input field in the form).
+
+The credit card number is returned masked with the last 4 digits
+visible.
+
+=over 4
+
+=item paydata_cc_cardowner
+
+=cut
+
+has paydata_cc_cardowner => (is => 'ro',
+                             default => sub { return "" });
+
+
+=item paydata_cc_number
+
+=cut
+
+has paydata_cc_number => (is => 'ro',
+                          default => sub { return "" });
+
+
+=item paydata_cc_typ
+
+=cut
+
+has paydata_cc_typ => (is => 'ro',
+                       default => sub { return "" });
+
+
+
+=item paydata_cc_expdate
+
+=cut
+
+has paydata_cc_expdate => (is => 'ro',
+                           default => sub { return "" });
+
+=back
+
+=cut
+
+
 =head2 Setters needed for the hash checking
 
 =head3 my_amount
