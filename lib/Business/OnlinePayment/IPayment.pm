@@ -364,6 +364,39 @@ sub capture {
     }
 }
 
+=item reverse($ret_trx_number)
+
+Release the amount previously preauth'ed, passing the original
+transaction number. No partial amount can be released, and will
+succeed only if no charging has been done.
+
+=cut
+
+
+sub reverse {
+    my ($self, $number) = @_;
+    unless (defined $number) {
+        $self->_set_error("Missing number");
+        return undef;
+    }
+    my %args = (
+                accountData => $self->accountData,
+                origTrxNumber => $number,
+                );
+    my ($res, $trace) = $self->soap_reverse->(%args);
+    $self->_set_debug($trace);
+    if ($res and ref($res) eq 'HASH' and
+        exists $res->{reverseResponse}->{ipaymentReturn}) {
+        return Business::OnlinePayment::IPayment::Return
+          ->new($res->{reverseResponse}->{ipaymentReturn});
+    }
+    else {
+        $self->_set_error($trace);
+        return undef;
+    }
+}
+
+
 =item soap
 
 SOAP object for session_id
@@ -376,6 +409,7 @@ The SOAP object (used internally) for capture
 
 has _soap_createSession => (is => 'rw');
 has _soap_capture => (is => 'rw');
+has _soap_reverse => (is => 'rw');
 
 sub soap {
     return shift->_get_soap_object('createSession');
@@ -385,9 +419,21 @@ sub soap_capture {
     return shift->_get_soap_object('capture');
 }
 
+=item soap_reverse
+
+The SOAP object (used internally) for reverse
+
+=cut
+
+sub soap_reverse {
+    return shift->_get_soap_object('reverse');
+}
+
+
 sub _get_soap_object {
     my ($self, $call) = @_;
     unless ($call and ($call eq 'capture' or
+                       $call eq 'reverse' or
                        $call eq 'createSession')) {
         die "Missing or wrong argument\n"
     }

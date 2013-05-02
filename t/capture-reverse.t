@@ -16,7 +16,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 59;
+plan tests => 74;
 
 
 
@@ -37,7 +37,7 @@ my $amount = int(rand(5000)) * 100 + 2;
 
 $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
-                      shopper_id      => 1234);
+                      shopper_id      => int(rand(5000)));
 
 my $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -145,5 +145,94 @@ ok(!$empty->is_success, "Empty is not a success");
 ok(!$empty->is_error, "But is neither an error");
 
 
+diag "Testing the reverse";
+
+$amount = int(rand(5000)) * 100 + 2;
+
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => "$amount",
+                      invoiceText     => "Test reverse",
+                      shopper_id      => int(rand(5000)));
+
+$response = $ua->post($secbopi->ipayment_cgi_location,
+                      { ipayment_session_id => $secbopi->session_id,
+                        addr_name => "Mario Pegula",
+                        addr_street => "via del piffero 10",
+                        addr_city => "Trieste",
+                        addr_zip => "34100",
+                        addr_country => "IT",
+                        addr_telefon => "041-311234",
+                        addr_email => 'melmothx@gmail.com',
+                        silent => 1,
+                        cc_number => "4111111111111111",
+                        cc_checkcode => "",
+                        cc_expdate_month => "02",
+                        trx_securityhash => $secbopi->trx_securityhash,
+                        cc_expdate_year => "2014" });
+
+$ipayres = $secbopi->get_response_obj($response->header('location'));
+ok($ipayres->is_valid);
+ok($ipayres->is_success);
+print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
+my $reverse = $secbopi->reverse($ipayres->ret_trx_number);
+
+ok($reverse->is_success);
+is($reverse->paymentMethod, "VisaCard", "Payment method ok");
+is($reverse->status, "SUCCESS", "successfully reversed");
+ok(!$reverse->is_error, "no error");
+
+$reverse = $secbopi->reverse($ipayres->ret_trx_number);
+ok($reverse->is_error, "Reverting again raises an error");
+ok($reverse->error_info =~ qr/Transaction already reversed/);
+is_deeply($reverse->errorDetails, {
+                                   'retAdditionalMsg' => 'Transaction already reversed',
+                                   'retFatalerror' => 0,
+                                   'retErrorMsg' => 'Reverse nicht m',
+                                   'retErrorcode' => 10032
+                                  });
+
+diag "Testing the reverse after a partial capture (should fail)";
+
+$amount = int(rand(5000)) * 100 + 500;
+
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => "$amount",
+                      invoiceText     => "Test reverse",
+                      shopper_id      => int(rand(5000)));
+
+$response = $ua->post($secbopi->ipayment_cgi_location,
+                      { ipayment_session_id => $secbopi->session_id,
+                        addr_name => "Mario Pegula",
+                        addr_street => "via del piffero 10",
+                        addr_city => "Trieste",
+                        addr_zip => "34100",
+                        addr_country => "IT",
+                        addr_telefon => "041-311234",
+                        addr_email => 'melmothx@gmail.com',
+                        silent => 1,
+                        cc_number => "4111111111111111",
+                        cc_checkcode => "",
+                        cc_expdate_month => "02",
+                        trx_securityhash => $secbopi->trx_securityhash,
+                        cc_expdate_year => "2014" });
+
+$ipayres = $secbopi->get_response_obj($response->header('location'));
+ok($ipayres->is_valid);
+ok($ipayres->is_success);
+print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
+$res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
+ok($res->is_success, "Charging 2 euros works");
+$res = $secbopi->reverse($ipayres->ret_trx_number);
+ok(!$res->is_success, "And now the reverse fails");
+print Dumper($res);
+
+is_deeply($res->errorDetails, {
+                                   'retAdditionalMsg' => 'Transaction already partial or completely captured',
+                                   'retFatalerror' => 0,
+                                   'retErrorMsg' => 'Reverse nicht m',
+                                   'retErrorcode' => 10032
+                                  });
+
+ok($res->error_info =~ qr/Transaction already partial or completely captured/);
 
 
