@@ -304,7 +304,7 @@ sub session_id {
     }
 
     # do the request passing the accountData
-    my ($res, $trace) = $self->soap->(%args);
+    my ($res, $trace) = $self->_get_soap_object('createSession')->(%args);
     $self->_set_debug($trace);
 
     # check if we got something valuable
@@ -320,6 +320,17 @@ sub session_id {
     # please note that we don't store the sessionId. It's a fire and forget.
 }
 
+
+=item raw_response_hash
+
+Debug for the arguments passed to IPayment::Return;
+
+=cut
+
+has raw_response_hash => (is => 'rwp');
+
+
+
 =item capture($ret_trx_number, $amount, $currency)
 
 Charge an amount previously preauth'ed. C<$amount> and C<$currency>
@@ -330,10 +341,13 @@ usually multiply by 100).
 
 =cut
 
-sub capture {
-    my ($self, $number, $amount, $currency) = @_;
-    # init the soap, if not already
-
+sub _do_post_payment_op {
+    my ($self, $op, $number, $amount, $currency) = @_;
+    unless (defined $number) {
+        $self->_set_error("Missing transaction number");
+        return undef;
+    }
+    die "Wrong usage, missing operation" unless $op;
     my %args = (
                 accountData => $self->accountData,
                 origTrxNumber => $number,
@@ -351,17 +365,29 @@ sub capture {
                                   trxCurrency => $currency,
                                  };
     }
-    my ($res, $trace) = $self->soap_capture->(%args);
+    die "Wrong operation" unless ($op eq 'capture' or
+                                  $op eq 'refund' or
+                                  $op eq 'reverse');
+
+    my ($res, $trace) = $self->_get_soap_object($op)->(%args);
     $self->_set_debug($trace);
+    $self->_set_raw_response_hash($res);
     if ($res and ref($res) eq 'HASH' and
-        exists $res->{captureResponse}->{ipaymentReturn}) {
+        exists $res->{"${op}Response"}->{ipaymentReturn}) {
         return Business::OnlinePayment::IPayment::Return
-          ->new($res->{captureResponse}->{ipaymentReturn});
+          ->new($res->{"${op}Response"}->{ipaymentReturn});
     }
     else {
         $self->_set_error($trace);
         return undef;
     }
+}
+
+sub capture {
+    my ($self, $number, $amount, $currency) = @_;
+    # init the soap, if not already
+    return $self->_do_post_payment_op(capture => $number,
+                                      $amount, $currency);
 }
 
 =item reverse($ret_trx_number)
@@ -375,67 +401,37 @@ succeed only if no charging has been done.
 
 sub reverse {
     my ($self, $number) = @_;
-    unless (defined $number) {
-        $self->_set_error("Missing number");
-        return undef;
-    }
-    my %args = (
-                accountData => $self->accountData,
-                origTrxNumber => $number,
-                );
-    my ($res, $trace) = $self->soap_reverse->(%args);
-    $self->_set_debug($trace);
-    if ($res and ref($res) eq 'HASH' and
-        exists $res->{reverseResponse}->{ipaymentReturn}) {
-        return Business::OnlinePayment::IPayment::Return
-          ->new($res->{reverseResponse}->{ipaymentReturn});
-    }
-    else {
-        $self->_set_error($trace);
-        return undef;
-    }
+    # we don't pass $amount and $currency
+    return $self->_do_post_payment_op(reverse => $number);
 }
 
+=item refund($ret_trx_number, $amount, $currency)
 
-=item soap
-
-SOAP object for session_id
-
-=item soap_capture
-
-The SOAP object (used internally) for capture
+Refund the given amount. Please note that we have to pass the
+transaction number B<of the capture>, not the C<preauth> one.
 
 =cut
+
+sub refund {
+    my ($self, $number, $amount, $currency) = @_;
+    return $self->_do_post_payment_op(refund => $number,
+                                      $amount, $currency);
+}
+
+# accessors to soap objects
 
 has _soap_createSession => (is => 'rw');
 has _soap_capture => (is => 'rw');
 has _soap_reverse => (is => 'rw');
-
-sub soap {
-    return shift->_get_soap_object('createSession');
-}
-
-sub soap_capture {
-    return shift->_get_soap_object('capture');
-}
-
-=item soap_reverse
-
-The SOAP object (used internally) for reverse
-
-=cut
-
-sub soap_reverse {
-    return shift->_get_soap_object('reverse');
-}
-
+has _soap_refund => (is => 'rw');
 
 sub _get_soap_object {
     my ($self, $call) = @_;
     unless ($call and ($call eq 'capture' or
                        $call eq 'reverse' or
+                       $call eq 'refund' or
                        $call eq 'createSession')) {
-        die "Missing or wrong argument\n"
+        die "Missing or wrong argument"
     }
     my $accessor = "_soap_" . $call;
     my $obj = $self->$accessor;
