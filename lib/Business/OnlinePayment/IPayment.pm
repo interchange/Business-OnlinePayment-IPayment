@@ -607,6 +607,8 @@ Being these information transaction specific, if a transaction has not
 been initiated, the method will not do anything nor will return
 anything.
 
+UK will be translated to GB.
+
 =cut
 
 sub country {
@@ -618,6 +620,9 @@ sub country {
     }
     my $country = uc($self->trx_obj->addr_info->{country});
     return unless $country =~ m/^[A-Z]{2,3}$/s;
+    if ($country eq 'UK') {
+        return 'GB';
+    }
     return $country
 }
 
