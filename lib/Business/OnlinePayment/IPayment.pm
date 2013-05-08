@@ -331,7 +331,7 @@ has raw_response_hash => (is => 'rwp');
 
 
 
-=item capture($ret_trx_number, $amount, $currency)
+=item capture($ret_trx_number, $amount, $currency, $opts)
 
 Charge an amount previously preauth'ed. C<$amount> and C<$currency>
 are optional and may be used to charge partial amounts. C<$amount> and
@@ -339,10 +339,13 @@ C<$currency> follow the same rules of C<trxAmount> and C<trxCurrency>
 of L<Business::OnlinePayment::IPayment::Transaction> (no decimal,
 usually multiply by 100).
 
+The last optional argument should be a hashref with additional
+parameters to pass to transactionData (notably shopperId).
+
 =cut
 
 sub _do_post_payment_op {
-    my ($self, $op, $number, $amount, $currency) = @_;
+    my ($self, $op, $number, $amount, $currency, $trxdetails) = @_;
     unless (defined $number) {
         $self->_set_error("Missing transaction number");
         return undef;
@@ -352,19 +355,34 @@ sub _do_post_payment_op {
                 accountData => $self->accountData,
                 origTrxNumber => $number,
                 );
+    # amount is always mandatory for transactionData
     if ($amount) {
+        my %trxdata;
         die "Wrong amount $amount!\n" unless ($amount =~ m/^[1-9][0-9]*$/s);
+
         unless ($currency) {
             $currency = 'EUR'
         }
         unless ($currency =~ m/^[A-Z]{3}$/s) {
             die "Wrong currency name!\n";
         }
-        $args{transactionData} = {
-                                  trxAmount => $amount,
-                                  trxCurrency => $currency,
-                                 };
+        
+        %trxdata = (
+                    trxAmount => $amount,
+                    trxCurrency => $currency,
+                    );
+        if ($trxdetails and
+            (ref($trxdetails) eq 'HASH')
+            and %$trxdetails) {
+            foreach my $k (keys %$trxdetails) {
+                unless ($trxdata{$k}) {
+                    $trxdata{$k} = $trxdetails->{$k}
+                }
+            }
+        }
+        $args{transactionData} = \%trxdata;
     }
+
     die "Wrong operation" unless ($op eq 'capture' or
                                   $op eq 'refund' or
                                   $op eq 'reverse');
@@ -384,10 +402,10 @@ sub _do_post_payment_op {
 }
 
 sub capture {
-    my ($self, $number, $amount, $currency) = @_;
+    my ($self, $number, $amount, $currency, $opts) = @_;
     # init the soap, if not already
     return $self->_do_post_payment_op(capture => $number,
-                                      $amount, $currency);
+                                      $amount, $currency, $opts);
 }
 
 =item reverse($ret_trx_number)
@@ -405,17 +423,20 @@ sub reverse {
     return $self->_do_post_payment_op(reverse => $number);
 }
 
-=item refund($ret_trx_number, $amount, $currency)
+=item refund($ret_trx_number, $amount, $currency, $opts)
 
 Refund the given amount. Please note that we have to pass the
 transaction number B<of the capture>, not the C<preauth> one.
 
+The last optional argument should be a hashref with additional
+parameters to pass to transactionData (notably shopperId).
+
 =cut
 
 sub refund {
-    my ($self, $number, $amount, $currency) = @_;
+    my ($self, $number, $amount, $currency, $opts) = @_;
     return $self->_do_post_payment_op(refund => $number,
-                                      $amount, $currency);
+                                      $amount, $currency, $opts);
 }
 
 # accessors to soap objects

@@ -16,7 +16,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 74;
+plan tests => 79;
 
 
 
@@ -35,9 +35,11 @@ my $secbopi = Business::OnlinePayment::IPayment->new(%account);
 
 my $amount = int(rand(5000)) * 100 + 2;
 
+my $shopper_id = int(rand(5000));
+
 $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
-                      shopper_id      => int(rand(5000)));
+                      shopper_id      => $shopper_id);
 
 my $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -61,8 +63,6 @@ my $response = $ua->post($secbopi->ipayment_cgi_location,
 
 my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
-print Dumper($secbopi->debug);
-
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
 is($ipayres->address_info, 'Mario Pegula via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234',
@@ -70,12 +70,17 @@ is($ipayres->address_info, 'Mario Pegula via del piffero 10 34100 Trieste IT mel
 
 print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
 
-my $res = $secbopi->capture($ipayres->ret_trx_number, $amount - 200, "EUR");
+my $res = $secbopi->capture($ipayres->ret_trx_number, $amount - 200, "EUR",
+                            { shopperId => $shopper_id });
 
 ok($res->is_success, "Charging the amount minus 2 euros works");
 is($res->status, "SUCCESS");
-print Dumper($secbopi->debug);
+print Dumper($secbopi->debug->request->content);
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
+
 is(ref($res->successDetails), "HASH");
+print Dumper($res->successDetails);
 is($res->paymentMethod, "VisaCard", "Payment method ok");
 is($res->trx_paymentmethod, "VisaCard", "Payment method ok (alternate)");
 ok($res->trxRemoteIpCountry, "ip ok");
@@ -95,7 +100,11 @@ ok(defined $res->ret_authcode,
 ok($res->ret_trx_number,
    "Trx number is returned: " . $res->ret_trx_number);
 
-$res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
+$res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR",
+                         { shopperId => $shopper_id });
+
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
 
 is($res->address_info, 'via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234', "Address OK");
 
@@ -105,8 +114,13 @@ diag Dumper($res->successDetails);
 
 sleep 1;
 
-$res = $secbopi->capture($ipayres->ret_trx_number, 500000 , "EUR");
+$res = $secbopi->capture($ipayres->ret_trx_number, 500000 , "EUR",
+                         { shopperId => $shopper_id });
 # print Dumper($secbopi->debug);
+
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
+
 
 diag Dumper($res->successDetails);
 
@@ -120,7 +134,12 @@ ok($res->ret_errorcode, "with code " . $res->ret_errorcode);
 
 ok($res->error_info =~ qr/Capture nicht m Not enough funds left \(\d+\) for this capture. 10031/, "Not funds left error ok");
 
-$res = $secbopi->capture("828939234", 500000, "EUR");
+$res = $secbopi->capture("828939234", 500000, "EUR",
+                         { shopperId => $shopper_id });
+
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
+
 
 ok($res->is_error, "Charging a random number with 50.000 fails");
 
@@ -148,11 +167,13 @@ ok(!$empty->is_error, "But is neither an error");
 diag "Testing the reverse";
 
 $amount = int(rand(5000)) * 100 + 2;
+$shopper_id = int(rand(5000)) * 100 + 2;
+
 
 $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
                       invoiceText     => "Test reverse",
-                      shopper_id      => int(rand(5000)));
+                      shopper_id      => $shopper_id);
 
 $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -182,6 +203,7 @@ is($reverse->status, "SUCCESS", "successfully reversed");
 ok(!$reverse->is_error, "no error");
 
 $reverse = $secbopi->reverse($ipayres->ret_trx_number);
+
 ok($reverse->is_error, "Reverting again raises an error");
 ok($reverse->error_info =~ qr/Transaction already reversed/);
 is_deeply($reverse->errorDetails, {
@@ -194,11 +216,12 @@ is_deeply($reverse->errorDetails, {
 diag "Testing the reverse after a partial capture (should fail)";
 
 $amount = int(rand(5000)) * 100 + 500;
+$shopper_id = int(rand(5000)) * 100 + 500;
 
 $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
                       invoiceText     => "Test reverse",
-                      shopper_id      => int(rand(5000)));
+                      shopper_id      => $shopper_id);
 
 $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -220,7 +243,12 @@ $ipayres = $secbopi->get_response_obj($response->header('location'));
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
 print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
-$res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR");
+$res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR",
+                         { shopperId => $shopper_id });
+
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
+
 ok($res->is_success, "Charging 2 euros works");
 $res = $secbopi->reverse($ipayres->ret_trx_number);
 ok(!$res->is_success, "And now the reverse fails");

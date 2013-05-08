@@ -16,7 +16,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 21;
+plan tests => 23;
 
 
 
@@ -34,9 +34,11 @@ my $secbopi = Business::OnlinePayment::IPayment->new(%account);
 
 my $amount = int(rand(5000)) * 100 + 2000;
 
+my $shopper_id = int(rand(5000));
+
 $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
-                      shopper_id      => int(rand(5000)));
+                      shopper_id      => $shopper_id);
 
 my $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
@@ -65,11 +67,23 @@ ok($res->ret_trx_number,
 # please note that we have to use the transaction number of the
 # capture, not the original one.
 
-my $refund = $secbopi->refund($res->ret_trx_number, 2000);
+my $refund = $secbopi->refund($res->ret_trx_number, 2000, "EUR",
+                              { shopperId => $shopper_id });
+
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
+
+
+
 ok($refund->is_success);
 # print Dumper($secbopi->debug);
 print Dumper($secbopi->raw_response_hash);
-$refund = $secbopi->refund($res->ret_trx_number, $amount - 2000);
+$refund = $secbopi->refund($res->ret_trx_number, $amount - 2000, "EUR",
+                           { shopperId => $shopper_id });
+
+like($secbopi->debug->request->content,
+     qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
+
 ok($refund->is_success);
 ok($refund->ret_transdate);
 ok($refund->ret_transtime);
