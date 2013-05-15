@@ -438,7 +438,20 @@ sub datastorage_op {
     my ($res, $trace) = $self->_get_soap_object($operation)->(%args);
     $self->_set_debug($trace);
     $self->_set_raw_response_hash($res);
-    return $res;
+
+    # in the trasaction object the call is defined as in CGI, but we
+    # need the SOAP one
+    my $op = $self->_translate_to_soap_call($operation);
+
+    if ($res and ref($res) eq 'HASH' and
+        exists $res->{"${op}Response"}->{ipaymentReturn}) {
+        return Business::OnlinePayment::IPayment::Return
+          ->new($res->{"${op}Response"}->{ipaymentReturn});
+    }
+    else {
+        $self->_set_error($trace);
+        return undef;
+    }
 }
 
 

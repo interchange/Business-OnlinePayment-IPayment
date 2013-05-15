@@ -14,7 +14,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 8;
+plan tests => 18;
 
 my %account = (
                accountid => 99999,
@@ -72,24 +72,31 @@ $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
                       shopper_id      => $shopper_id);
 
-my $res = $secbopi->datastorage_op($storage_id)->{preAuthorizeResponse}->{ipaymentReturn};
-my $ret = Business::OnlinePayment::IPayment::Return->new($res);
+my $ret = $secbopi->datastorage_op($storage_id);
+print Dumper($secbopi->raw_response_hash);
 
-ok($ret->storage_id);
-is($ret->storage_id, $storage_id);
+my $exp = { storage_id => $storage_id };
 
+test_return_obj($ret, $exp);
 
 $amount = int(rand(5000)) * 100 + 2000;
-
 $shopper_id = int(rand(5000));
-
 $secbopi->transaction(transactionType => 'auth',
                       trxAmount       => "$amount",
                       shopper_id      => $shopper_id);
 
-$res = $secbopi->datastorage_op($storage_id)->{authorizeResponse}->{ipaymentReturn};
+$ret = $secbopi->datastorage_op($storage_id);
+print Dumper($secbopi->raw_response_hash);
 
-$ret = Business::OnlinePayment::IPayment::Return->new($res);
+test_return_obj($ret, $exp);
 
-ok($ret->storage_id);
-is($ret->storage_id, $storage_id);
+sub test_return_obj {
+    my ($obj, $exp) = @_;
+    ok($ret->is_success, "is success");
+    is($ret->trx_paymentmethod, "VisaCard", "fake Visa");
+    ok($ret->trx_remoteip_country, "got remote country: " . $ret->trx_remoteip_country);
+    ok($ret->trx_paymentdata_country, "got remote payment country: " . $ret->trx_paymentdata_country);
+    is($ret->storage_id, $exp->{storage_id}, $exp->{storage_id} . " ok");
+    ok($ret->trx_timestamp, "Timestamp: " . $ret->trx_timestamp);
+    ok($ret->ret_trx_number, "trx number: " .$ret->ret_trx_number);
+}
