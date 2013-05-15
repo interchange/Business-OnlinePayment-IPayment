@@ -14,7 +14,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 18;
+plan tests => 22;
 
 my %account = (
                accountid => 99999,
@@ -79,6 +79,13 @@ my $exp = { storage_id => $storage_id };
 
 test_return_obj($ret, $exp);
 
+my $capt = $secbopi->capture($ret->ret_trx_number);
+ok($capt->is_success, "Capturing successed");
+print Dumper($capt);
+
+
+
+
 $amount = int(rand(5000)) * 100 + 2000;
 $shopper_id = int(rand(5000));
 $secbopi->transaction(transactionType => 'auth',
@@ -89,6 +96,19 @@ $ret = $secbopi->datastorage_op($storage_id);
 print Dumper($secbopi->raw_response_hash);
 
 test_return_obj($ret, $exp);
+
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => "1000000",
+                      shopper_id      => "XXXX123432XX");
+
+$ret = $secbopi->datastorage_op('123456');
+ok($ret, "Got an object from the fake request");
+ok(!$ret->is_success, "But it's not a success");
+print Dumper($ret->errorDetails);
+ok($ret->error_info);
+
+
+
 
 sub test_return_obj {
     my ($obj, $exp) = @_;
