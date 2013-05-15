@@ -490,24 +490,8 @@ has _soap_preAuthorize => (is => 'rw');
 has _soap_authorize => (is => 'rw');
 
 sub _get_soap_object {
-    my ($self, $call) = @_;
-    unless ($call and ($call eq 'capture' or
-                       $call eq 'reverse' or
-                       $call eq 'refund' or
-                       $call eq 'preauth' or
-                       $call eq 'auth' or
-                       $call eq 'authorize' or
-                       $call eq 'preAuthorize' or
-                       $call eq 'createSession')) {
-        die "Missing or wrong argument"
-    }
-    # get the right client
-    if ($call eq 'auth') {
-        $call = 'authorize';
-    }
-    elsif ($call eq 'preauth') {
-        $call = 'preAuthorize';
-    }
+    my ($self, $op) = @_;
+    my $call = $self->_translate_to_soap_call($op);
     my $accessor = "_soap_" . $call;
     my $obj = $self->$accessor;
     return $obj if $obj;
@@ -516,6 +500,25 @@ sub _get_soap_object {
     # set the object
     $self->$accessor($client);
     return $self->$accessor;
+}
+
+# this method may be used for to do a sanity check, as it will die on
+# undef/wrong values.
+
+sub _translate_to_soap_call {
+    my ($self, $op) = @_;
+    die "No operation provided!" unless $op;
+    my %hash = (capture => 'capture',
+                reverse =>  'reverse',
+                refund =>  'refund',
+                preauth => 'preAuthorize',
+                auth => 'authorize',
+                authorize =>  'authorize',
+                preAuthorize => 'preAuthorize',
+                createSession => 'createSession',
+               );
+    die "Wrong call $op!" unless $hash{$op};
+    return $hash{$op};
 }
 
 =back
