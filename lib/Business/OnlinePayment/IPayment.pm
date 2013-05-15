@@ -401,6 +401,47 @@ sub _do_post_payment_op {
     }
 }
 
+=item datastorage_op($datastorage_id)
+
+After calling C<transaction>, if you have a valid datastorage id, you
+may want to use that instead of creating a session and use the form.
+
+This method will do a SOAP request to the Ipayment server, using the
+transaction details provided in the call to C<transaction>, and do the
+requested operation. So far it's supported preauth and auth. The
+capture and other operations should be done via its own method (which
+don't require the datastorage, but simply the previous transaction's
+id).
+
+=cut
+
+sub datastorage_op {
+    my ($self, $id) = @_;
+    return unless $id;
+    
+    $self->_set_error(undef);
+    # this should be fully populated by now
+    my %args = (
+                accountData => $self->accountData,
+                paymentData => {
+                                storageData => {
+                                                fromDatastorageId => $id,
+                                               },
+                               },
+                transactionData => $self->trx_obj->transactionData,
+               );
+    my $operation = $self->trx_obj->transactionType;
+    # append the options if needed
+    if ($self->trx_obj->options) {
+        $args{options} = $self->trx_obj->options;
+    }
+    my ($res, $trace) = $self->_get_soap_object($operation)->(%args);
+    $self->_set_debug($trace);
+    $self->_set_raw_response_hash($res);
+    return $res;
+}
+
+
 sub capture {
     my ($self, $number, $amount, $currency, $opts) = @_;
     # init the soap, if not already
@@ -445,14 +486,27 @@ has _soap_createSession => (is => 'rw');
 has _soap_capture => (is => 'rw');
 has _soap_reverse => (is => 'rw');
 has _soap_refund => (is => 'rw');
+has _soap_preAuthorize => (is => 'rw');
+has _soap_authorize => (is => 'rw');
 
 sub _get_soap_object {
     my ($self, $call) = @_;
     unless ($call and ($call eq 'capture' or
                        $call eq 'reverse' or
                        $call eq 'refund' or
+                       $call eq 'preauth' or
+                       $call eq 'auth' or
+                       $call eq 'authorize' or
+                       $call eq 'preAuthorize' or
                        $call eq 'createSession')) {
         die "Missing or wrong argument"
+    }
+    # get the right client
+    if ($call eq 'auth') {
+        $call = 'authorize';
+    }
+    elsif ($call eq 'preauth') {
+        $call = 'preAuthorize';
     }
     my $accessor = "_soap_" . $call;
     my $obj = $self->$accessor;

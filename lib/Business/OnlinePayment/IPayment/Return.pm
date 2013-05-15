@@ -83,7 +83,10 @@ Hashref with the success details
     'retTransDate' => '17.04.13',
     'retTrxNumber' => '1-84664243',
     'retTransTime' => '10:34:10',
-    'retAuthCode' => ''
+    'retAuthCode' => '',
+    'retStorageId' => '18895061', # if storage is used
+    'trxPayauthStatus' => 'I', # 3D detail
+    'trxIssuerAvsResponse' => 'A', # avs detail
   }                                                                   }
 
 =cut
@@ -283,7 +286,7 @@ sub ret_trx_number {
 =item ret_authcode
 
 Auth code, as returned by the IPayment server
- 
+
 =cut
 
 sub ret_authcode {
@@ -292,6 +295,46 @@ sub ret_authcode {
                       defined($self->successDetails->{retAuthCode}));
     return $self->successDetails->{retAuthCode};
 }
+
+=item storage_id
+
+The storage id (if used).
+
+=cut
+
+sub storage_id {
+    my $self = shift;
+    return "" unless ($self->successDetails and
+                      defined($self->successDetails->{retStorageId}));
+    return $self->successDetails->{retStorageId};
+}
+
+=item trx_issuer_avs_response
+
+AVS related response.p. 62 of the doc
+
+=cut
+
+sub trx_issuer_avs_response {
+    my $self = shift;
+    return "" unless ($self->successDetails and
+                      defined($self->successDetails->{trxIssuerAvsResponse}));
+    return $self->successDetails->{trxIssuerAvsResponse};
+}
+
+=item trx_payauth_status
+
+3D-related response, p. 62 of the doc
+
+=cut
+
+sub trx_payauth_status {
+    my $self = shift;
+    return "" unless ($self->successDetails and
+                      defined($self->successDetails->{trxPayauthStatus}));
+    return $self->successDetails->{trxPayauthStatus};
+}
+
 
 =item ret_errorcode
 

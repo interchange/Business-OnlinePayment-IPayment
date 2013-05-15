@@ -521,10 +521,32 @@ has datastorage_expirydate => (is => 'ro',
 
 =head3 storage_id
 
+The storage id for the current transaction.
+
 =cut
 
 has storage_id => (is => 'ro',
                    default => sub { return "" });
+
+
+=head3 trx_issuer_avs_response
+
+AVS related response.p. 62 of the doc
+
+=cut
+
+has trx_issuer_avs_response => (is => 'ro',
+                                default => sub { return "" });
+
+=head3 trx_payauth_status
+
+3D-related response, p. 62 of the doc
+
+=cut
+
+has trx_payauth_status => (is => 'ro',
+                           default => sub { return "" });
+
 
 
 =head2 METHODS

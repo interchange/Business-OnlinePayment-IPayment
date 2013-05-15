@@ -14,7 +14,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 4;
+plan tests => 8;
 
 my %account = (
                accountid => 99999,
@@ -60,3 +60,36 @@ ok($ipayres->is_success);
 # print Dumper($ipayres);
 ok($ipayres->storage_id, "Got the storage id: " . $ipayres->storage_id);
 is($ipayres->datastorage_expirydate, "2013/07/12");
+
+# do a new transaction using the data storage
+$amount = int(rand(5000)) * 100 + 2000;
+
+$shopper_id = int(rand(5000));
+
+my $storage_id = $ipayres->storage_id;
+
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => "$amount",
+                      shopper_id      => $shopper_id);
+
+my $res = $secbopi->datastorage_op($storage_id)->{preAuthorizeResponse}->{ipaymentReturn};
+my $ret = Business::OnlinePayment::IPayment::Return->new($res);
+
+ok($ret->storage_id);
+is($ret->storage_id, $storage_id);
+
+
+$amount = int(rand(5000)) * 100 + 2000;
+
+$shopper_id = int(rand(5000));
+
+$secbopi->transaction(transactionType => 'auth',
+                      trxAmount       => "$amount",
+                      shopper_id      => $shopper_id);
+
+$res = $secbopi->datastorage_op($storage_id)->{authorizeResponse}->{ipaymentReturn};
+
+$ret = Business::OnlinePayment::IPayment::Return->new($res);
+
+ok($ret->storage_id);
+is($ret->storage_id, $storage_id);
