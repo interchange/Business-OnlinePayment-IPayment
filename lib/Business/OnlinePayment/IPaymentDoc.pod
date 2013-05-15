@@ -187,3 +187,122 @@ Data Type: Boolean: B<use 1>
 =head2 See also
 
 http://git.linuxia.de/?p=ogone.git;a=blob;f=lib/Business/OnlinePayment/Ogone.pm;h=906d924e33d554291fd8f51fdc36d5ff9491245c;hb=HEAD
+
+
+=head2 Data storage
+
+
+Many traders have previously saved himself the credit card information
+of your customers payments to tions to be able to handle. The new
+rules, however, say that these systems and Dealers must now be
+certified by the PCI DSS rules. This is a separate Storing the data
+almost impossible or uneconomical. The ipayment system has set up for
+this reason a new storage service, the is fully integrated into the
+transaction system. Since the ipayment system according to PCI DSS
+Rules is certified, all traders who use ipayment, also of this service
+per- benefit.
+
+The payment data to be used in a query to the system ipayment stores
+the storage service under a unique ID and it returns to your shop. For
+this You can save an additional reference information (eg, customer
+number Their customers) and specify an expiration date for the data
+storage. You can use the storage service both for long-term storage of
+payment data, as use for short-term storage. A short-term storage may
+be, for Example, over the duration of an order process in the shop
+extend. Expired payment data automatically at the specified time
+ipayment removed from the system. So that payment data is stored, you
+must use_datastorage the parameter place. This query parameter is
+storage_id with the unique ID of the data rate returned.
+
+For all other requests for payment processing, instead of the payment
+data simply the ID of the record in the parameter from_datastorage_id
+given. The ipayment System reads the payment based on the ID data from
+the database, and uses this for the payment.
+
+The existing address data is also stored in the storage service.
+
+=head3 Parameter for the storage service
+
+=over 4
+
+=item If the storage service used?
+
+CGI name: C<use_datastorage>
+Web name: C<PaymentData/storageData/useDatastorage>
+Data type: Boolean
+
+A value of 1 (true) the payment data of the current request in the database
+Storage services stored. The unique ID of the record is in the parameter C<storage_id> returned.
+
+=item ID of the storage service from the payment data to be read
+
+CGI name: C<from_datastorage_id>
+Web name: C<PaymentData/storageData/fromDataStorageId>
+Data type: Long
+
+This parameter contains the ID of the storage service record from
+which the payment data to be read for this transaction.
+
+=item Expiration date of the stored data
+CGI name: C<datastorage_expirydate>
+Web name: C<PaymentData/storageData/datastorageExpirydate>
+Data type: String
+
+This optional parameter specifies the expiration date of the data in
+storage. The data automatically deleted after this date. As the value
+of U.S. date format is accepted, such as "2008/09/15".
+
+=item Expiring the datastorage
+
+CGI name: C<expire_datastorage>
+Web name: C<paymentData/storageData/expireDatastorage>
+Data type: Boolean
+
+This optional parameter can explain the data currently being used as invalid.
+This is useful if you want to make a payment, but after this record
+no longer need. The parameter is only meaningful if you have a stored data
+use rate from the storage service, and the ID parameter in from_datastorage_id is provided.
+
+=item  Merchant Reference for data storage
+CGI name: C<datastorage_reference>
+Web name: C<aymentData/storageData/datastorageReference>
+Data type: String
+
+This reference can be stored with the payment data in the storage
+service. The parameter is optional. The use of reference depending
+on the reuse mode (see next parameter) is useful.
+
+=item How should the data be stored in the storage service?
+
+CGI name: C<datastorage_reuse_method>
+Web name: C<PaymentData/storageData/datastorageReuseMethod>
+Data type: Integer.
+
+This parameter specifies under what rules the stored data or existing
+IDs are reused. The value is interpreted as a bit mask. The individual
+bits can be combined, although not all combinations are useful.
+
+datastorage_reuse_method = 24: It is created as soon as the address
+data or the basic payment data is updated, a new record. If, in the
+credit card only the term of validity is changed, but the card number
+is the same, always the same ID is used for storage.
+
+datastorage_reuse_method = 36: It is applied when the full payment of your customer data is changed or when you submit a new value in the parameter datastorage_reference a new record. In this way, multiple payment data can be stored for store customers, for example.
+
+datastorage_reuse_method = 52: It is applied when the payment details,
+the address data or the dealer reference in the request is not exactly
+a new record with the stored data match. This is for example the case
+when your Customers would like to give a new customer number or if
+your customer changes his address or payment details.
+
+=item Additional result parameters of the storage service
+
+CGI-Name: C<storage_id>
+Webservice-Name: C<PaymentReturn/successDetails/retStorageId>
+Data type: Long
+
+This parameter contains the storage ID that was assigned by the
+storage service.
+
+=back
+
