@@ -234,6 +234,9 @@ Data type: Boolean
 A value of 1 (true) the payment data of the current request in the database
 Storage services stored. The unique ID of the record is in the parameter C<storage_id> returned.
 
+This should be used only via CGI, I guess, as we don't touch the CC
+details, so no SOAP request.
+
 =item ID of the storage service from the payment data to be read
 
 CGI name: C<from_datastorage_id>

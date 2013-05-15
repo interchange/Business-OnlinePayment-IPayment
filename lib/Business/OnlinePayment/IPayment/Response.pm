@@ -507,6 +507,28 @@ This can be sent into the options as C<options->{trxUserComment}>
 has trx_user_comment => (is => 'ro',
                          default => sub { return "" });
 
+
+=head2 Storage accessors
+
+=head3 datastorage_expirydate
+
+The date as returned by the ipayment server (like: 2008/09/15)
+
+=cut
+
+has datastorage_expirydate => (is => 'ro',
+                               default => sub { return "" });
+
+=head3 storage_id
+
+=cut
+
+has storage_id => (is => 'ro',
+                   default => sub { return "" });
+
+
+=head2 METHODS
+
 =head3 set_credentials(%hash)
 
 As a shortcut, you can set the above attribute using this method
@@ -529,8 +551,6 @@ sub set_credentials {
     }
 }
 
-
-=head2 METHODS
 
 =head3 is_success
 
