@@ -282,6 +282,47 @@ This parameter specifies under what rules the stored data or existing
 IDs are reused. The value is interpreted as a bit mask. The individual
 bits can be combined, although not all combinations are useful.
 
+1 Bit (value 1) update an ID: The data in
+Storage service have been saved under a unique ID
+be updated for other requests. This means that
+across multiple requests, the storage ID remains the same and always
+is updated, regardless of how the data is changed. This
+Value is used by default if the parameter
+datastorage_reuse_method is not specified.
+
+2 Bit (value 2) Always new ID: Each payment request with a
+specific storage id always generates a new ID and are these
+returned. This also happens when the data are identical. Provide
+Make sure the expiration date of the data to use in this method.
+
+3 Bit (value 4) Unique ID for full payment Specifications: The system
+assigns a unique storage ID for the payment details. The
+Payment data is the complete credit card information (without
+CVC) or any banking information. This means that a more
+Payment request with the same data, in which a storage ID
+to be awarded, given the same storage id as the first
+Request. In most cases, you can assume that
+identical payment data to the same customers are.
+
+4 Bit (value 8) Unique ID for basic payment data: This option
+is very similar to the previous, but only the
+Used basic payment data. These are for credit card data, only the
+Card number, bank information with the bank routing number and account number.
+
+5 Bit (value 16) Unique ID for the address details: The system assigns
+depending on the address data storage a unique ID. The same
+Address data at a later request to receive the same storage id
+as in the first request.
+
+6 Bit (value 32) Unique ID for the Merchant Reference: The system
+assigns to each retailer reference a unique storage ID. If, for
+Example, a store customer number is used as a reference dealer,
+this option ensures that only one record per customer number in
+Storage service exists. This record is always updated.
+
+
+
+
 datastorage_reuse_method = 24: It is created as soon as the address
 data or the basic payment data is updated, a new record. If, in the
 credit card only the term of validity is changed, but the card number
