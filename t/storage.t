@@ -14,7 +14,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 26;
+plan tests => 29;
 
 my %account = (
                accountid => 99999,
@@ -157,6 +157,13 @@ $ipayres = $secbopi->get_response_obj($response->header('location'));
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
 
+diag "Testing datastorage expiring";
+my $expireres = $secbopi->expire_datastorage($storage_id);
+is($expireres, 1, "Expiring succeeded");
+$expireres = $secbopi->expire_datastorage($storage_id);
+ok($expireres, "Expiring another time (surprisingly) succeed");
+$expireres = $secbopi->expire_datastorage("12341234");
+ok(!$expireres, "Expiring a not existent storage doesn't succeed");
 
 
 sub test_return_obj {

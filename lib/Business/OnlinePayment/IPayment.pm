@@ -454,6 +454,34 @@ sub datastorage_op {
     }
 }
 
+=item expire_datastorage($id)
+
+Given the storage id passed as argument, expire it. Keep in mind that
+expiring it multiple times returns always true, so the return code is
+not really interesting.
+
+It returns 0 if the storage didn't exist.
+
+=cut
+
+sub expire_datastorage {
+    my ($self, $id) = @_;
+    return unless $id;
+    my $op = 'expireDatastorage';
+    my %args = (
+                accountData => $self->accountData,
+                datastorageId => $id,
+               );
+    my ($res, $trace) = $self->_get_soap_object($op)->(%args);
+    $self->_set_debug($trace);
+    $self->_set_raw_response_hash($res);
+    if ($res and ref($res) eq 'HASH' and
+        exists $res->{"${op}Response"}->{expireDatastorageReturn}) {
+        return $res->{"${op}Response"}->{expireDatastorageReturn};
+    }
+    return;
+}
+
 
 sub capture {
     my ($self, $number, $amount, $currency, $opts) = @_;
@@ -501,6 +529,7 @@ has _soap_reverse => (is => 'rw');
 has _soap_refund => (is => 'rw');
 has _soap_preAuthorize => (is => 'rw');
 has _soap_authorize => (is => 'rw');
+has _soap_expireDatastorage => (is => 'rw');
 
 sub _get_soap_object {
     my ($self, $op) = @_;
@@ -529,6 +558,7 @@ sub _translate_to_soap_call {
                 authorize =>  'authorize',
                 preAuthorize => 'preAuthorize',
                 createSession => 'createSession',
+                expireDatastorage => 'expireDatastorage',
                );
     die "Wrong call $op!" unless $hash{$op};
     return $hash{$op};
