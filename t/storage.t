@@ -14,7 +14,7 @@ use Business::OnlinePayment::IPayment::Response;
 my $ua = LWP::UserAgent->new;
 $ua->max_redirect(0);
 
-plan tests => 22;
+plan tests => 26;
 
 my %account = (
                accountid => 99999,
@@ -107,6 +107,55 @@ ok(!$ret->is_success, "But it's not a success");
 print Dumper($ret->errorDetails);
 ok($ret->error_info);
 
+diag "Trying the storage in CGI silent mode";
+
+$amount = int(rand(5000)) * 100 + 2000;
+$shopper_id = int(rand(5000));
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => "$amount",
+                      shopper_id      => $shopper_id);
+
+diag "Using storage id: $storage_id";
+$response = $ua->post($secbopi->ipayment_cgi_location,
+                      { ipayment_session_id => $secbopi->session_id,
+                        silent => 1,
+                        trx_securityhash => $secbopi->trx_securityhash,
+                        # the following is the purpose of the testing
+                        from_datastorage_id => $storage_id,
+                        return_paymentdata_details => 1,
+                      });
+
+$params = URI->new($response->header('location'));
+print Dumper({ $params->query_form });
+
+$ipayres = $secbopi->get_response_obj($response->header('location'));
+
+ok($ipayres->is_valid);
+ok($ipayres->is_success);
+
+$amount = int(rand(5000)) * 100 + 2000;
+$shopper_id = int(rand(5000));
+$secbopi->transaction(transactionType => 'preauth',
+                      trxAmount       => "$amount",
+                      shopper_id      => $shopper_id);
+
+diag "Using storage id: $storage_id";
+$response = $ua->post($secbopi->ipayment_cgi_location,
+                      { ipayment_session_id => $secbopi->session_id,
+                        silent => 1,
+                        trx_securityhash => $secbopi->trx_securityhash,
+                        # the following is the purpose of the testing
+                        from_datastorage_id => $storage_id,
+                        return_paymentdata_details => 1,
+                      });
+
+$params = URI->new($response->header('location'));
+print Dumper({ $params->query_form });
+
+$ipayres = $secbopi->get_response_obj($response->header('location'));
+
+ok($ipayres->is_valid);
+ok($ipayres->is_success);
 
 
 
