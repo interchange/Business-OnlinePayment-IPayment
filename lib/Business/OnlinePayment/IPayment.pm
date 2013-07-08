@@ -728,7 +728,8 @@ Being these information transaction specific, if a transaction has not
 been initiated, the method will not do anything nor will return
 anything.
 
-UK will be translated to GB.
+UK will be translated to GB, and EI to IE.
+
 
 =cut
 
@@ -744,7 +745,12 @@ sub country {
     if ($country eq 'UK') {
         return 'GB';
     }
-    return $country
+    elsif ($country eq 'EI') {
+        return 'IE';
+    }
+    else {
+        return $country;
+    }
 }
 
 

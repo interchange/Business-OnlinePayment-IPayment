@@ -9,7 +9,7 @@ use URI;
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Response;
 
-plan tests => 11;
+plan tests => 12;
 
 my %account = (
                accountid => 99999,
@@ -82,6 +82,10 @@ is $secbopi->country, "DE", "country ok";
 $secbopi->country("UK");
 
 is $secbopi->country, "GB", "UK translated to GB";
+
+$secbopi->country("EI");
+
+is $secbopi->country, "IE", "EI translated to IE";
 
 $secbopi->country("italy");
 
