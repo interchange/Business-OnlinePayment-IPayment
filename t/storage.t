@@ -5,7 +5,7 @@ use Data::Dumper;
 use File::Spec;
 use LWP::UserAgent;
 use URI;
-
+use POSIX qw/strftime/;
 
 
 use Business::OnlinePayment::IPayment;
@@ -36,6 +36,8 @@ $secbopi->transaction(transactionType => 'preauth',
                       trxAmount       => "$amount",
                       shopper_id      => $shopper_id);
 
+my $expire_date = three_months_from_now();
+
 my $response = $ua->post($secbopi->ipayment_cgi_location,
                       { ipayment_session_id => $secbopi->session_id,
                         addr_name => "Mario Pegula",
@@ -43,11 +45,11 @@ my $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_number => "4111111111111111",
                         cc_checkcode => "",
                         cc_expdate_month => "02",
-                        cc_expdate_year => "2014",
+                        cc_expdate_year => next_year(),
                         trx_securityhash => $secbopi->trx_securityhash,
                         # the following is the purpose of the testing
                         use_datastorage => 1,
-                        datastorage_expirydate => '2013/07/12',
+                        datastorage_expirydate => $expire_date,
                       });
 
 my $params = URI->new($response->header('location'));
@@ -59,7 +61,7 @@ ok($ipayres->is_valid);
 ok($ipayres->is_success);
 # print Dumper($ipayres);
 ok($ipayres->storage_id, "Got the storage id: " . $ipayres->storage_id);
-is($ipayres->datastorage_expirydate, "2013/07/12");
+is($ipayres->datastorage_expirydate, $expire_date);
 
 # do a new transaction using the data storage
 $amount = int(rand(5000)) * 100 + 2000;
@@ -175,4 +177,12 @@ sub test_return_obj {
     is($ret->storage_id, $exp->{storage_id}, $exp->{storage_id} . " ok");
     ok($ret->trx_timestamp, "Timestamp: " . $ret->trx_timestamp);
     ok($ret->ret_trx_number, "trx number: " .$ret->ret_trx_number);
+}
+
+sub three_months_from_now {
+    my $time = time() + (60 * 60 * 24 * 30 * 3);
+    return strftime('%Y/%m/%d', localtime($time));
+}
+sub next_year {
+    my $year = strftime('%Y', localtime(time())) + 1;
 }
