@@ -2,24 +2,27 @@ NAME
     Business::OnlinePayment::IPayment - Checkout via Ipayment Silent Mode
 
 VERSION
-    Version 0.01
+    Version 0.05
 
 SYNOPSIS
       use Business::OnlinePayment::IPayment;
       my %account = (
-                     accountId => 99999,
-                     trxuserId => 99998,
+                     accountid => 99999,
+                     trxuserid => 99998,
                      trxpassword => 0,
                      adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe',
                      app_security_key => 'testtest',
                      wsdl_file => $wsdl_file,
-                     %urls
+                     success_url => 'http://example.net/checkout-payment',
+                     failure_url => 'http://example.net/checkout-success',
+                     hidden_trigger_rul => 'http://example.net/trigger',
                     );
   
       my $secbopi = Business::OnlinePayment::IPayment->new(%account);
-      $secbopi->transactionType('preauth');
-      $secbopi->trxAmount(5000); # 50 euros
-  
+      $secbopi->transaction(transactionType => 'preauth',
+                            trxAmount => 5000);
+      # see Business::OnlinePayment::IPayment::Transaction for available options
+
       $response = $ua->post('https://ipayment.de/merchant/99999/processor/2.0/',
                             { ipayment_session_id => $secbopi->session_id,
                               addr_name => "Mario Pegula",
@@ -38,12 +41,12 @@ SYNOPSIS
     wsdl_file
         The name of th WSDL file. It should be a local file.
 
-    accountId
-        The Ipayment account id (the one put into the CGI url)
+    accountid
+        The Ipayment account id (the one put into the CGI url). Integer.
 
-    trxuserId
+    trxuserid
         The application ID, you can in your ipayment configuration menu read
-        using Anwendung > Details
+        using Anwendung > Details. Integer
 
     trxpassword
         For each application, there is an application password which
@@ -69,8 +72,8 @@ SYNOPSIS
         output will look like this:
 
          accountData => {
-                         accountId => 99999,
-                         trxuserId => 99999,
+                         accountid => 99999,
+                         trxuserid => 99999,
                          trxpassword =>0,
                          adminactionpassword => '5cfgRT34xsdedtFLdfHxj7tfwx24fe'}
 
@@ -78,60 +81,42 @@ SYNOPSIS
         Mandatory (for us) field, where to redirect the user in case of
         success.
 
+        CGI-Name: `redirect_url'
+
+        *In silent mode, the parameters are always passed by GET to the
+        script.* (no need to `redirect_action')
+
     failure_url
         Mandatory (for us) field, where to redirect the user in case of
         failure.
 
-    hidden_trigger
+        CGI Name: `silent_error_url' Data type: String
+
+        This URL is more in case of failure of ipayment system with the
+        error information and parameters using the GET method. This URL must
+        point to a CGI script that can handle the paramaters.
+
+    hidden_trigger_url
         Optional url for the hidden trigger.
 
     processorUrls
         Return the hashref with the defined urls
 
-    TransactionData
-    These fields could be filled on the fly, but given that we want to add
-    security, we do some additional checks here
-
-    trxCurrency
-        Currency in which the payment is processed. There are all known
-        three-letter ISO Currency codes allowed. A list of known currency
-        codes, see https://ipayment.de/ under Technik. E.g `EUR'
-
-    trxAmount
-        Amount to be debited, in the smallest currency unit, for Example
-        cents. Decimal points or other characters except numbers are not
-        allowed.
-
-    shopper_id
-        This parameter allows you to specify a unique ID for an order
-        process. Under this Shopper ID is saved to the associated
-        transaction in order ipayment system. The Shopper ID must be unique
-        only if the extended examination of the IDs Avoidance of double use
-        transactions.
-
-    transactionData
-        Return the hashref with the transaction data details
-
-    transactionType
-        The transaction type, choosen from the types below. It defaults to
-        `auth'
-
-          preauth
-          auth
-          base_check
-          check_save
-          grefund_cap
-
-    paymentType
-        The payment type, choosen from the types below. It defaults to `cc'
-
-          cc
-          elv
-          pp
-
     error
     This accessors point to a XML::Compile::SOAP backtrace. The object is
     quite large and deeply nested, but it's there just in case we need it.
+
+    debug
+    Every call to session id stores the trace into this attribute.
+
+    trx_obj
+    Attribute to hold a Business::OnlinePayment::IPayment::Transaction
+    object
+
+    transaction
+    Constructor for the object above. All the argument are passed verbatim
+    to the Business::OnlinePayment::IPayment::Transaction constructor, then
+    the object is stored.
 
   METHODS
     session_id
@@ -139,8 +124,48 @@ SYNOPSIS
         object, because it can used only once. So calling session_id will
         send the data to the SOAP service and retrieve the session key.
 
-    soap
-        The SOAP object (used internally)
+    raw_response_hash
+        Debug for the arguments passed to IPayment::Return;
+
+    capture($ret_trx_number, $amount, $currency, $opts)
+        Charge an amount previously preauth'ed. `$amount' and `$currency'
+        are optional and may be used to charge partial amounts. `$amount'
+        and `$currency' follow the same rules of `trxAmount' and
+        `trxCurrency' of Business::OnlinePayment::IPayment::Transaction (no
+        decimal, usually multiply by 100).
+
+        The last optional argument should be a hashref with additional
+        parameters to pass to transactionData (notably shopperId).
+
+    datastorage_op($datastorage_id)
+        After calling `transaction', if you have a valid datastorage id, you
+        may want to use that instead of creating a session and use the form.
+
+        This method will do a SOAP request to the Ipayment server, using the
+        transaction details provided in the call to `transaction', and do
+        the requested operation. So far it's supported preauth and auth. The
+        capture and other operations should be done via its own method
+        (which don't require the datastorage, but simply the previous
+        transaction's id).
+
+    expire_datastorage($id)
+        Given the storage id passed as argument, expire it. Keep in mind
+        that expiring it multiple times returns always true, so the return
+        code is not really interesting.
+
+        It returns 0 if the storage didn't exist.
+
+    reverse($ret_trx_number)
+        Release the amount previously preauth'ed, passing the original
+        transaction number. No partial amount can be released, and will
+        succeed only if no charging has been done.
+
+    refund($ret_trx_number, $amount, $currency, $opts)
+        Refund the given amount. Please note that we have to pass the
+        transaction number of the capture, not the `preauth' one.
+
+        The last optional argument should be a hashref with additional
+        parameters to pass to transactionData (notably shopperId).
 
   SOAP specification
       Name: createSession
@@ -171,6 +196,23 @@ SYNOPSIS
     trx_securityhash
         If we have a security key, we trigger the hash generation, so we can
         double check the result.
+
+        CGI Name: `trx_securityhash' Data type: string, maximum 32
+        characters
+
+        Security hash of CGI command concatenating Id, amount, currency,
+        password, Transaction Security Key (should be set in the
+        configuration menu using ipayment). The hash is `trxuser_id',
+        `trx_amount', `trx_currency', `trxpassword' and the *transaction
+        security key*.
+
+          md5_hex($trxuser_id . $trx_amount . $trx_currency . $trxpassword . $sec_key); 
+
+          perl -e 'use Digest::MD5 qw/md5_hex/;
+                        print  md5_hex("99998" . 5000 . "EUR" . 0 .  "testtest"), "\n";'
+          # => then in the form
+          <input type="hidden" name="trx_securityhash"
+                 value="db4812171baef817dec0cd56c0f5c8cd">
 
   UTILITIES
     get_response_obj($rawuri) or get_response_obj(%params)
@@ -207,9 +249,23 @@ SYNOPSIS
 
       Business::OnlinePayment::IPayment::Response->new(%params);
 
+    with `my_security_key' and `my_userid' inherited from the fixed values
+    of this class.
+
     ipayment_cgi_location
     Returns the correct url where the customer posts the CC data, which is
     simply: https://ipayment.de/merchant/<Account-ID/processor/2.0/>
+
+  Additional information
+    country
+    Country code of the cardholder of the current
+    Business::OnlinePayment::IPayment::Transaction object
+
+    Being these information transaction specific, if a transaction has not
+    been initiated, the method will not do anything nor will return
+    anything.
+
+    UK will be translated to GB, and EI to IE.
 
 AUTHOR
     Marco Pessotto, `<melmothx at gmail.com>'
