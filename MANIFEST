@@ -1,6 +1,5 @@
 Changes
 lib/Business/OnlinePayment/IPayment.pm
-lib/Business/OnlinePayment/IPaymentDoc.pod
 lib/Business/OnlinePayment/IPayment/Response.pm
 lib/Business/OnlinePayment/IPayment/Return.pm
 lib/Business/OnlinePayment/IPayment/Transaction.pm
