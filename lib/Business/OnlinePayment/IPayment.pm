@@ -799,6 +799,8 @@ L<http://search.cpan.org/dist/Business-OnlinePayment-IPayment/>
 
 =head1 ACKNOWLEDGEMENTS
 
+Thanks to Stefan Hornburg (Racke) C<racke@linuxia.de> for the initial
+code, ideas and support.
 
 =head1 LICENSE AND COPYRIGHT
 
