@@ -38,7 +38,7 @@ our $VERSION = '0.05';
 This module provides an interface for online payments via gateway, using the
 IPayment silent mode (L<https://ipayment.de>).
 
-It supports payments, capture reverse operations, and vault-related
+It supports payments, capture and reverse operations, and vault-related
 functions.
 
 =head1 SYNOPSIS
