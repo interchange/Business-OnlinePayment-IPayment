@@ -4,6 +4,13 @@ NAME
 VERSION
     Version 0.05
 
+DESCRIPTION
+    This module provides an interface for online payments via gateway, using
+    the IPayment silent mode (https://ipayment.de).
+
+    It supports payments, capture and reverse operations, and vault-related
+    functions.
+
 SYNOPSIS
       use Business::OnlinePayment::IPayment;
       my %account = (
@@ -299,6 +306,9 @@ SUPPORT
         http://search.cpan.org/dist/Business-OnlinePayment-IPayment/
 
 ACKNOWLEDGEMENTS
+    Thanks to Stefan Hornburg (Racke) `racke@linuxia.de' for the initial
+    code, ideas and support.
+
 LICENSE AND COPYRIGHT
     Copyright 2013 Marco Pessotto.
 
