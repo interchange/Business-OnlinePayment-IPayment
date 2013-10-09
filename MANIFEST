@@ -18,3 +18,5 @@ t/payment.t
 t/pod-coverage.t
 t/pod.t
 t/url-validation.t
+t/refund_cap.t
+t/storage.t

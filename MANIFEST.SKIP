@@ -1,2 +1,5 @@
 .git
+garbage/*
 ignore.txt
+Makefile.old
+README.bak
