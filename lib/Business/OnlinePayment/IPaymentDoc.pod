@@ -1,3 +1,5 @@
+=encoding utf8
+
 =head2 transaction types
 
 =over 4

@@ -7,6 +7,8 @@ use warnings;
 use utf8;
 use Scalar::Util qw/looks_like_number/;
 
+=encoding utf8
+
 =head1 NAME
 
 Business::OnlinePayment::IPayment::Transaction - Simple object to hold the transaction request
