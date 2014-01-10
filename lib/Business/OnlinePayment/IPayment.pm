@@ -672,10 +672,10 @@ Success:
   'trxuser_id' => '99998',             'trxuser_id' => '99999',
   'trx_remoteip_country' => 'DE'       'trx_remoteip_country' => 'DE'
 
-Returns a Business::OnlinePayment::IPayment::Response object, so you
+Returns a L<Business::OnlinePayment::IPayment::Response> object, so you
 can call ->is_success on it.
 
-This is just a shortcuts for 
+This is just a shortcut for
 
   Business::OnlinePayment::IPayment::Response->new(%params);
 
