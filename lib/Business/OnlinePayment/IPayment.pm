@@ -760,6 +760,9 @@ sub country {
     }
 }
 
+=head1 TESTING
+
+Test credit card numbers can be found here: L<https://ipayment.de/technik/cc_testnumbers.php4>.
 
 =head1 AUTHOR
 
