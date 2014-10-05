@@ -1,5 +1,20 @@
 Revision history for Business-OnlinePayment-IPayment
 
+0.06 Sun Oct  5 08:48:07 2014 EDT
+
+    [BUG FIXES]
+
+    * Add missing prerequisite on XML::Compile::WSDL11 (Marco Pessotto).
+    * Execute POD pod tests only during release testing (Marco Pessotto).
+
+    [DOCUMENTATION]
+
+    * Add link to test credit card numbers to documentation (Stefan Hornburg).
+    * Add missing link wrapper for Business::OnlinePayment::IPayment::Transaction
+      and fix a typo (Stefan Hornburg).
+    * Add encoding utf8 to POD files to prevent test errors (Stefan Hornburg).
+    * Add module description (Marco Pessotto).
+
 0.05    2013-10-09
         First release on CPAN
 

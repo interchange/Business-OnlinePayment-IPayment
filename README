@@ -2,7 +2,7 @@ NAME
     Business::OnlinePayment::IPayment - Checkout via Ipayment Silent Mode
 
 VERSION
-    Version 0.05
+    Version 0.06
 
 DESCRIPTION
     This module provides an interface for online payments via gateway, using
@@ -252,7 +252,7 @@ SYNOPSIS
     Returns a Business::OnlinePayment::IPayment::Response object, so you can
     call ->is_success on it.
 
-    This is just a shortcuts for
+    This is just a shortcut for
 
       Business::OnlinePayment::IPayment::Response->new(%params);
 
@@ -273,6 +273,10 @@ SYNOPSIS
     anything.
 
     UK will be translated to GB, and EI to IE.
+
+TESTING
+    Test credit card numbers can be found here:
+    https://ipayment.de/technik/cc_testnumbers.php4.
 
 AUTHOR
     Marco Pessotto, `<melmothx at gmail.com>'
@@ -310,7 +314,7 @@ ACKNOWLEDGEMENTS
     code, ideas and support.
 
 LICENSE AND COPYRIGHT
-    Copyright 2013 Marco Pessotto.
+    Copyright 2013-2014 Marco Pessotto.
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the the Artistic License (2.0). You may obtain a copy
