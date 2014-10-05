@@ -814,7 +814,7 @@ code, ideas and support.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2013 Marco Pessotto.
+Copyright 2013-2014 Marco Pessotto.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
