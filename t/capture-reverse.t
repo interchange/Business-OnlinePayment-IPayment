@@ -132,7 +132,7 @@ ok($res->is_error, "And we have an error");
 
 ok($res->ret_errorcode, "with code " . $res->ret_errorcode);
 
-ok($res->error_info =~ qr/Capture nicht m Not enough funds left \(\d+\) for this capture. 10031/, "Not funds left error ok");
+like $res->error_info,  qr/Not enough funds left \(\d+\) for this capture. 10031/, "Not funds left error ok";
 
 $res = $secbopi->capture("828939234", 500000, "EUR",
                          { shopperId => $shopper_id });
@@ -209,7 +209,7 @@ ok($reverse->error_info =~ qr/Transaction already reversed/);
 is_deeply($reverse->errorDetails, {
                                    'retAdditionalMsg' => 'Transaction already reversed',
                                    'retFatalerror' => 0,
-                                   'retErrorMsg' => 'Reverse nicht m',
+                                   'retErrorMsg' => '',
                                    'retErrorcode' => 10032
                                   });
 
@@ -257,7 +257,7 @@ print Dumper($res);
 is_deeply($res->errorDetails, {
                                    'retAdditionalMsg' => 'Transaction already partial or completely captured',
                                    'retFatalerror' => 0,
-                                   'retErrorMsg' => 'Reverse nicht m',
+                                   'retErrorMsg' => '',
                                    'retErrorcode' => 10032
                                   });
 
