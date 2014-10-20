@@ -6,7 +6,7 @@ use Data::Dumper;
 use File::Spec;
 use LWP::UserAgent;
 use URI;
-
+use POSIX qw/strftime/;
 
 
 use Business::OnlinePayment::IPayment;
@@ -48,7 +48,7 @@ my $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
-                        cc_expdate_year => "2014" });
+                        cc_expdate_year => next_year() });
 
 my $ipayres = $secbopi->get_response_obj($response->header('location'));
 
@@ -116,7 +116,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
-                        cc_expdate_year => "2014" });
+                        cc_expdate_year => next_year() });
 
 $ipayres = $secbopi->get_response_obj($response->header('location'));
 
@@ -145,3 +145,6 @@ ok($refund->is_error, "Another one fails for " . ($amount / 2));
 
 print Dumper($secbopi->raw_response_hash);
 
+sub next_year {
+    my $year = strftime('%Y', localtime(time())) + 1;
+}

@@ -6,6 +6,7 @@ use Data::Dumper;
 use File::Spec;
 use LWP::UserAgent;
 use URI;
+use POSIX qw/strftime/;
 
 plan tests => 34;
 
@@ -103,7 +104,7 @@ my $response = $ua->post($bopi->ipayment_cgi_location,,
                            return_paymentdata_details => 1,
                            cc_checkcode => "",
                            cc_expdate_month => "02",
-                           cc_expdate_year => "2014" });
+                           cc_expdate_year => next_year() });
 
 test_success($response);
 
@@ -137,7 +138,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
-                        cc_expdate_year => "2014" });
+                        cc_expdate_year => next_year() });
 
 ok($secbopi->debug->request->content, "We can inspect the SOAP request");
 
@@ -162,7 +163,10 @@ ok(!$ipayres->validation_errors, "No errors found");
 is($ipayres->paydata_cc_number, 'XXXXXXXXXXXX1111', "CC num returned masked");
 is($ipayres->paydata_cc_cardowner, "Mario Pegula", "CC owner returned");
 is($ipayres->paydata_cc_typ, "VisaCard", "Visa card returned");
-is($ipayres->paydata_cc_expdate, "0214", "Expiration returned");
+my $expiration_expected = next_year();
+$expiration_expected =~ s/^(\d\d)(\d\d)/02$2/;
+is($ipayres->paydata_cc_expdate, $expiration_expected,
+   "Expiration returned $expiration_expected");
 
 # while if we tamper fails
 $ipayres->my_amount(5000000);
@@ -204,4 +208,8 @@ sub test_success {
     my $uri = URI->new($r->header('location'));
     # my %result = $uri->query_form;
     # print Dumper(\%result);
+}
+
+sub next_year {
+    my $year = strftime('%Y', localtime(time())) + 1;
 }

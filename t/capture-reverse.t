@@ -6,7 +6,7 @@ use Data::Dumper;
 use File::Spec;
 use LWP::UserAgent;
 use URI;
-
+use POSIX qw/strftime/;
 
 
 use Business::OnlinePayment::IPayment;
@@ -55,7 +55,7 @@ my $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
-                        cc_expdate_year => "2014" });
+                        cc_expdate_year => next_year() });
 
 # ok($secbopi->debug->request->content, "We can inspect the SOAP request");
 
@@ -189,7 +189,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
-                        cc_expdate_year => "2014" });
+                        cc_expdate_year => next_year() });
 
 $ipayres = $secbopi->get_response_obj($response->header('location'));
 ok($ipayres->is_valid);
@@ -237,7 +237,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
                         cc_checkcode => "",
                         cc_expdate_month => "02",
                         trx_securityhash => $secbopi->trx_securityhash,
-                        cc_expdate_year => "2014" });
+                        cc_expdate_year => next_year() });
 
 $ipayres = $secbopi->get_response_obj($response->header('location'));
 ok($ipayres->is_valid);
@@ -264,3 +264,6 @@ is_deeply($res->errorDetails, {
 ok($res->error_info =~ qr/Transaction already partial or completely captured/);
 
 
+sub next_year {
+    my $year = strftime('%Y', localtime(time())) + 1;
+}
