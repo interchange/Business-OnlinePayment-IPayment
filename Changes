@@ -1,5 +1,13 @@
 Revision history for Business-OnlinePayment-IPayment
 
+0.07 Mon Oct 20 21:01:24 2014 CEST
+
+    [TESTS]
+
+    * Remove boilerplate test (Marco Pessotto).
+    * Adjust capture reverse test to corrected error message (Marco Pessotto).
+    * Fix hardcoded expiration year in capture reverse test (Marco Pessotto).
+
 0.06 Sun Oct  5 08:48:07 2014 EDT
 
     [BUG FIXES]

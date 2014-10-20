@@ -2,7 +2,7 @@ NAME
     Business::OnlinePayment::IPayment - Checkout via Ipayment Silent Mode
 
 VERSION
-    Version 0.06
+    Version 0.07
 
 DESCRIPTION
     This module provides an interface for online payments via gateway, using
