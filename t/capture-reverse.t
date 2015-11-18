@@ -209,9 +209,9 @@ ok($reverse->error_info =~ qr/Transaction already reversed/);
 is_deeply($reverse->errorDetails, {
                                    'retAdditionalMsg' => 'Transaction already reversed',
                                    'retFatalerror' => 0,
-                                   'retErrorMsg' => '',
+                                   'retErrorMsg' => 'Reverse nicht mglich. (Betrag abweichend oder bereits abgebucht? Bitte Gutschrift verwenden.)',
                                    'retErrorcode' => 10032
-                                  });
+                                  }) or diag Dumper($reverse->errorDetails);
 
 diag "Testing the reverse after a partial capture (should fail)";
 
@@ -257,9 +257,9 @@ diag Dumper($res);
 is_deeply($res->errorDetails, {
                                    'retAdditionalMsg' => 'Transaction already partial or completely captured',
                                    'retFatalerror' => 0,
-                                   'retErrorMsg' => '',
+                                   'retErrorMsg' => 'Reverse nicht mglich. (Betrag abweichend oder bereits abgebucht? Bitte Gutschrift verwenden.)',
                                    'retErrorcode' => 10032
-                                  });
+                                  }) or diag Dumper($res->errorDetails);
 
 ok($res->error_info =~ qr/Transaction already partial or completely captured/);
 
