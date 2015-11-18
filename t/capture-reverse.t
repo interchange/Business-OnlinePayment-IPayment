@@ -68,19 +68,19 @@ ok($ipayres->is_success);
 is($ipayres->address_info, 'Mario Pegula via del piffero 10 34100 Trieste IT melmothx@gmail.com 041-311234',
    "Address OK: " . $ipayres->address_info);
 
-print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
+diag $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
 
 my $res = $secbopi->capture($ipayres->ret_trx_number, $amount - 200, "EUR",
                             { shopperId => $shopper_id });
 
 ok($res->is_success, "Charging the amount minus 2 euros works");
 is($res->status, "SUCCESS");
-print Dumper($secbopi->debug->request->content);
+diag Dumper($secbopi->debug->request->content);
 like($secbopi->debug->request->content,
      qr{<shopperId>\Q$shopper_id\E</shopperId}, "Shopper id passed");
 
 is(ref($res->successDetails), "HASH");
-print Dumper($res->successDetails);
+diag Dumper($res->successDetails);
 is($res->paymentMethod, "VisaCard", "Payment method ok");
 is($res->trx_paymentmethod, "VisaCard", "Payment method ok (alternate)");
 ok($res->trxRemoteIpCountry, "ip ok");
@@ -127,7 +127,7 @@ diag Dumper($res->successDetails);
 is($res->address_info, '', "Empty address on failure");
 
 ok(!$res->is_success, "More charging fails");
-print Dumper ($res);
+diag Dumper ($res);
 ok($res->is_error, "And we have an error");
 
 ok($res->ret_errorcode, "with code " . $res->ret_errorcode);
@@ -194,7 +194,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
 $ipayres = $secbopi->get_response_obj($response->header('location'));
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
-print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
+diag $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
 my $reverse = $secbopi->reverse($ipayres->ret_trx_number);
 
 ok($reverse->is_success);
@@ -242,7 +242,7 @@ $response = $ua->post($secbopi->ipayment_cgi_location,
 $ipayres = $secbopi->get_response_obj($response->header('location'));
 ok($ipayres->is_valid);
 ok($ipayres->is_success);
-print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
+diag $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
 $res = $secbopi->capture($ipayres->ret_trx_number, 200 , "EUR",
                          { shopperId => $shopper_id });
 
@@ -252,7 +252,7 @@ like($secbopi->debug->request->content,
 ok($res->is_success, "Charging 2 euros works");
 $res = $secbopi->reverse($ipayres->ret_trx_number);
 ok(!$res->is_success, "And now the reverse fails");
-print Dumper($res);
+diag Dumper($res);
 
 is_deeply($res->errorDetails, {
                                    'retAdditionalMsg' => 'Transaction already partial or completely captured',
