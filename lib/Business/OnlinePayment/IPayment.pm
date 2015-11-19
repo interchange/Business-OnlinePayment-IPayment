@@ -27,11 +27,11 @@ Business::OnlinePayment::IPayment - Checkout via Ipayment Silent Mode
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 DESCRIPTION
 
