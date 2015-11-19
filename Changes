@@ -1,5 +1,17 @@
 Revision history for Business-OnlinePayment-IPayment
 
+0.08 Thu Nov 19 18:20:10 2015 CET
+
+    [BUG FIXES]
+
+    * Update error messages in reverse capture tests
+      (GH #3, Marco Pessotto).
+
+    [TESTS]
+
+    * Add tests for refund with auth / without preauth + capture
+      (Marco Pessotto).
+
 0.07 Mon Oct 20 21:01:24 2014 CEST
 
     [TESTS]
