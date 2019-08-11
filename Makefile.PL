@@ -21,7 +21,6 @@ WriteMakefile(
                   'Moo' => 1,
                   'XML::Compile::SOAP' => 0,
                   URI => 1,
-                  'Crypt::SSLeay' => 0,
                   'XML::Compile::WSDL11' => 0,
                   'Business::OnlinePayment' => 3,
     },
