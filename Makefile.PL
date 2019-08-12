@@ -20,7 +20,8 @@ WriteMakefile(
     PREREQ_PM => {
                   'Moo' => 1,
                   'XML::Compile::SOAP' => 0,
-                  URI => 1,
+                  'LWP::Protocol::https' => 0,
+                  'URI' => 1,
                   'XML::Compile::WSDL11' => 0,
                   'Business::OnlinePayment' => 3,
     },
