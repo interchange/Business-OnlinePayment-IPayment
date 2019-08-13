@@ -21,7 +21,12 @@ matrix:
   allow_failures:
     - perl: dev
 before_install:
-  - eval $(curl https://travis-perl.github.io/init) --auto
+  - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
+  - source ~/travis-perl-helpers/init
+  - build-perl
+  - perl -V
+  - build-dist
+  - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
 install:
   - cpan-install --deps
   - cpan-install --quiet --notest Test::CheckManifest Test::Pod::Coverage 
