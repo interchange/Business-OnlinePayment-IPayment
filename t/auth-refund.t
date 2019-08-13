@@ -5,9 +5,12 @@ use Test::More;
 use Data::Dumper;
 use File::Spec;
 use LWP::UserAgent;
+# to prevent the following error on older Perls
+# Can't locate object method "new" via package "LWP::Protocol::https::Socket"
+use IO::Socket::SSL;
+
 use URI;
 use POSIX qw/strftime/;
-
 
 use Business::OnlinePayment::IPayment;
 use Business::OnlinePayment::IPayment::Return;
