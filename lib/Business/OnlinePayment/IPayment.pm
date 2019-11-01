@@ -544,19 +544,8 @@ sub _get_soap_object {
     my $accessor = "_soap_" . $call;
     my $obj = $self->$accessor;
     return $obj if $obj;
-
-    my $hack = sub {
-        my ($request, $trace, $transporter) = @_;
-        # sent the request myself
-        my $res = $trace->{user_agent}->request($request);
-        my $content = $res->content;
-        $content =~ s/\A(\s*)//;
-        $res->content($content);
-        $res->header(Content_Length => length($content));
-        return $res;
-    };
     my $wsdl = XML::Compile::WSDL11->new($self->wsdl_file);
-    my $client = $wsdl->compileClient($call, transport_hook => $hack);
+    my $client = $wsdl->compileClient($call);
     # set the object
     $self->$accessor($client);
     return $self->$accessor;
