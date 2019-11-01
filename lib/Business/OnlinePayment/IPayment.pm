@@ -84,7 +84,7 @@ constructor, as they are pretty much fixed values.
 
 =item wsdl_file
 
-The name of th WSDL file. It should be a local file.
+The name of the WSDL file. It should be a local file.
 
 =cut
 

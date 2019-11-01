@@ -112,7 +112,7 @@ ok($ipayres->is_success);
 print $ipayres->ret_trx_number, " ", $ipayres->trx_amount, " ", $ipayres->trx_currency, "\n";
 
 $refund = $secbopi->refund($ipayres->ret_trx_number);
-ok($refund->is_success, "Full refund succeedeed");
+ok($refund->is_success, "Full refund succeeded");
 ok($refund->ret_transdate);
 ok($refund->ret_transtime);
 ok($refund->ret_trx_number);
