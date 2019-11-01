@@ -8,7 +8,7 @@ WriteMakefile(
     AUTHOR           => q{Marco Pessotto <melmothx@gmail.com>},
     VERSION_FROM     => 'lib/Business/OnlinePayment/IPayment.pm',
     ABSTRACT_FROM    => 'lib/Business/OnlinePayment/IPayment.pm',
-    LICENSE          => 'Artistic_2_0',
+    LICENSE          => 'artistic_2',
     PL_FILES         => {},
     MIN_PERL_VERSION => 5.010001,
     CONFIGURE_REQUIRES => {
